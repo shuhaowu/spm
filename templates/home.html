@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8" />
+
+  <!-- Set the viewport width to device width for mobile -->
+  <meta name="viewport" content="width=device-width" />
+
+  <title>Simple Project Management</title>
+
+  <!-- Included CSS Files (Compressed) -->
+  <link rel="stylesheet" href="/static/stylesheets/foundation.min.css">
+  <link rel="stylesheet" href="/static/stylesheets/app.css">
+
+  <script src="https://login.persona.org/include.js"></script>
+  <script>
+    window.current_user = {% if current_user %}"{{ current_user }}"{% else %} undefined {% endif %};
+    window.current_user_key = {% if current_user_key %}"{{ current_user_key }}"{% else %} undefined {% endif %};
+  </script>
+
+  <!--
+  <script src="/static/javascripts/modernizr.foundation.js"></script>
+  -->
+  <!-- IE Fix for HTML5 Tags -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+</head>
+<body>
+  <div class="row contain-to-grid">
+    <nav class="top-bar">
+      <ul>
+        <li class="name"><h1><a href="#/home">Simple Project Management</a></h1></li>
+      </ul>
+      <section>
+        <ul class="left">
+          <li class="has-dropdown" id="nav-projects">
+            <a href="#">Projects</a>
+
+            <ul class="dropdown">
+              {@ _.each(projects, function(project, index, list)){ @}
+              <li><a href="#/project/{[ project.get('key') ]}">{[ project.get("name") ]}</a></li>
+              {@ }); @}
+            </ul>
+
+          </li>
+        </ul>
+
+        <ul class="right">
+          <li id="profile-link"><a href="#/profile">My Profile</a></li>
+          <li><a href="#" id="persona-login">Login with Your Email</a></li>
+        </ul>
+      </section>
+    </nav>
+  </div>
+
+  <div class="row messages">
+    <div class="twelve columns">
+      <div id="messages">
+        <div class="alert-box {[ message.get('type') ]}">
+          {[ message.get("content") ]}
+          <a href="" class="close">&times;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/html" id="profile-view">
+    <div class="profile-view">
+      <div class="row">
+        <div class="eight columns">
+          <p class="profile-name">
+            <img src="http://www.gravatar.com/avatar/{[ user.get('email_hash') ]}?r=pg&s=60" />
+            <span>{[ user.get("name") ]}</span> <a href="" id="profile-change-name">Change</a>
+            <a href="" id="profile-cancel-change-name">Cancel</a>
+          </p>
+        </div>
+        <div class="four columns profile-edit textright">
+          <a href="#/editpassword" class="small radius secondary button">Edit Password</a>
+        </div>
+        <hr />
+      </div>
+
+      <div class="row">
+        <div class="twelve columns">
+          <p class="title">Information</p>
+          <ul>
+            {@ _.each(user.get("emails"), function(email, index, list){ @}
+            <li>Email: <a href="mailto:{[ email ]}">{[ email ]}</a></li>
+            {@ }); @}
+          </ul>
+          <p class="title">Projects</p>
+          <ul>
+            {@ _.each(user.get("projects"), function(project, index, list){ @}
+            <li><a href="#/p/{[ project['key'] ]}">{[ project["name"] ]}</a>: {[ user.get("positions")[project["key"]] ]}</li>
+            {@ }); @}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <div id="main">
+    <div class="row">
+      <h2 class="center">You need to sign in to continue!</h2>
+    </div>
+  </div>
+
+  <footer class="row">
+    <a href="http://carletonrobotics.com">CU Robotics</a> | Ardroid Group 2012 | <a href="#/credits">Credits</a>
+  </footer>
+
+
+  <script src="/static/javascripts/jquery.js"></script>
+  <!--
+  <script src="/static/javascripts/foundation.min.js"></script>
+  -->
+  <script src="/static/javascripts/underscore-min.js"></script>
+  <script src="/static/javascripts/backbone-min.js"></script>
+  <script src="/static/javascripts/app.js"></script>
+</body>
+</html>

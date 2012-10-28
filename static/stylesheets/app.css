@@ -1,0 +1,18 @@
+.center { text-align: center; }
+.right { float: right; }
+.textright { text-align: right; }
+p.title { font-weight: bold; font-size: 1.5em; }
+ul { margin-left: 2em; }
+
+a#persona-login{ color: orange; }
+li#profile-link, li#nav-projects { visibility: hidden; }
+div.row.messages { margin: 1em auto; }
+footer.row { text-align: center; font-size: 10px; color: #CCC; margin-top: 1em; height: 2em; line-height: 2em; }
+
+.profile-name { font-size: 1.5em; font-weight: bold; }
+#profile-change-name, #profile-cancel-change-name { font-size: 0.5em; font-weight: normal; vertical-align: middle; }
+#profile-cancel-change-name { visibility: hidden; }
+.profile-name img { vertical-align: middle; margin-right: 10px; }
+.profile-edit { line-height: 60px; }
+.vcard dl { display: block; margin: 8px 10px 8px; }
+.vcard dl dt { display: block; float: left; width: 120px; color: #999; }
