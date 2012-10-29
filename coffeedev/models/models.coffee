@@ -19,8 +19,10 @@ class User extends Backbone.Model
     name : "Unknown"
     error: false
 
+class Project extends Backbone.Model
 
 exports["LoginData"] = LoginData
 exports["Message"] = Message
 exports["MessageList"] = MessageList
 exports["User"] = User
+exports["Project"] = Project

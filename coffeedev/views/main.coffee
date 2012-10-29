@@ -1,5 +1,13 @@
 exports = namespace "views.main"
 vp = require "views.profile"
+models = require "models"
+
+class HomeView extends Backbone.View
+  initialize: () ->
+    _.bindAll(@)
+    that = this
+
+    @project = new models.Project()
 
 class MainView extends Backbone.View
   initialize: () ->
@@ -20,7 +28,7 @@ class MainView extends Backbone.View
       @el.innerHTML = ""
 
   on_logout: () ->
-    @el.innerHTML = "<h2 class=\"center\">You need to sign in to continue!</h2>"
+    @login_required()
 
   show_profile: (key) ->
     if @profile_view != @current_view or @profile_view.user.get("key") != key
@@ -29,16 +37,22 @@ class MainView extends Backbone.View
 
   render: () -> @current_view.render()
 
+  login_required: () ->
+    @el.innerHTML = "<h2 class=\"center\">You need to sign in to continue!</h2>"
+
   on_loading_error: (xhr, status, error) ->
-    switch (xhr.status)
+    @http_error(xhr.status)
+
+  http_error: (status) ->
+    switch (status)
       when 403
-        @el.innerHTML = "<h2 class=\"center\">#{xhr.status}: You're not allowed to access this.</h2>"
+        @el.innerHTML = "<h2 class=\"center\">#{status}: You're not allowed to access this.</h2>"
       when 404
-        @el.innerHTML = "<h2 class=\"center\">#{xhr.status}: Requested document is not found.</h2>"
+        @el.innerHTML = "<h2 class=\"center\">#{status}: Requested document is not found.</h2>"
       when 405, 400
-        @el.innerHTML = "<h2 class=\"center\">#{xhr.status}: This request is invalid.</h2>"
+        @el.innerHTML = "<h2 class=\"center\">#{status}: This request is invalid.</h2>"
       when 500
-        @el.innerHTML = "<h2 class=\"center\">#{xhr.status}: The server encountered an error.</h2>"
+        @el.innerHTML = "<h2 class=\"center\">#{status}: The server encountered an error.</h2>"
 
 
 exports["MainView"] = MainView

@@ -28,7 +28,7 @@ def login():
   if verification_data:
     if verification_data["status"] == "okay":
       session["email"] = verification_data["email"]
-      session["ukey"] = verification_data["ukey"]
+      session["key"] = verification_data["key"]
     return jsonify(verification_data)
 
   return abort(500)

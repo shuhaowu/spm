@@ -23,10 +23,10 @@ def do_login(assertion):
         ukey = do_registration(verification_data["email"])
       else: # There <rage>BETTER BE</rage> only 1 users in this list. lawl. DD2. lawl.
         for user in users.run():
-          ukey = user.key
+          key = user.key
           break
 
-      verification_data["ukey"] = ukey
+      verification_data["key"] = key
       return verification_data
     elif verification_data["status"] == "failure":
       return verification_data

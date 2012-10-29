@@ -5,7 +5,7 @@ from functools import wraps
 def login_required(f):
   @wraps(f)
   def df(*args, **kwargs):
-    if session.get("ukey", False):
+    if session.get("key", False):
       return f(*args, **kwargs)
     else:
       return abort(403)

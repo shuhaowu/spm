@@ -33,7 +33,11 @@ $(document).ready(
 
     app_router = new AppRouter()
     app_router.on("route:show_my_profile", () ->
-      main_view.show_profile(logindata.get("current_user_key"))
+      current_user_key = window.current_user_key || logindata.get("current_user_key")
+      if current_user_key
+        main_view.show_profile(current_user_key)
+      else
+        main_view.http_error(403)
     )
 
     app_router.on("route:show_profile", (key) ->

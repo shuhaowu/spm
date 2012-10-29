@@ -36,6 +36,7 @@ class NavBarView extends Backbone.View
           if res["status"] == "okay"
             that.logindata.set("loggedin", true)
             that.logindata.set("current_user", res["email"])
+            that.logindata.set("current_user_key", res["key"])
             post_message("You have logged in as #{res['email']}.", "success")
           else
             that.on_error(res, status)

@@ -14,7 +14,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
 // coffeedev/models/models.coffee
 (function() {
-  var LoginData, Message, MessageList, User, exports,
+  var LoginData, Message, MessageList, Project, User, exports,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -86,6 +86,18 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
   })(Backbone.Model);
 
+  Project = (function(_super) {
+
+    __extends(Project, _super);
+
+    function Project() {
+      return Project.__super__.constructor.apply(this, arguments);
+    }
+
+    return Project;
+
+  })(Backbone.Model);
+
   exports["LoginData"] = LoginData;
 
   exports["Message"] = Message;
@@ -93,6 +105,8 @@ window['require'] = window['module'] = window['namespace'] = function(name){
   exports["MessageList"] = MessageList;
 
   exports["User"] = User;
+
+  exports["Project"] = Project;
 
 }).call(this);
 
@@ -232,6 +246,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
               if (res["status"] === "okay") {
                 that.logindata.set("loggedin", true);
                 that.logindata.set("current_user", res["email"]);
+                that.logindata.set("current_user_key", res["key"]);
                 return post_message("You have logged in as " + res['email'] + ".", "success");
               } else {
                 return that.on_error(res, status);
@@ -397,13 +412,34 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
 // coffeedev/views/main.coffee
 (function() {
-  var MainView, exports, vp,
+  var HomeView, MainView, exports, models, vp,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   exports = namespace("views.main");
 
   vp = require("views.profile");
+
+  models = require("models");
+
+  HomeView = (function(_super) {
+
+    __extends(HomeView, _super);
+
+    function HomeView() {
+      return HomeView.__super__.constructor.apply(this, arguments);
+    }
+
+    HomeView.prototype.initialize = function() {
+      var that;
+      _.bindAll(this);
+      that = this;
+      return this.project = new models.Project();
+    };
+
+    return HomeView;
+
+  })(Backbone.View);
 
   MainView = (function(_super) {
 
@@ -439,7 +475,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
     };
 
     MainView.prototype.on_logout = function() {
-      return this.el.innerHTML = "<h2 class=\"center\">You need to sign in to continue!</h2>";
+      return this.login_required();
     };
 
     MainView.prototype.show_profile = function(key) {
@@ -453,17 +489,25 @@ window['require'] = window['module'] = window['namespace'] = function(name){
       return this.current_view.render();
     };
 
+    MainView.prototype.login_required = function() {
+      return this.el.innerHTML = "<h2 class=\"center\">You need to sign in to continue!</h2>";
+    };
+
     MainView.prototype.on_loading_error = function(xhr, status, error) {
-      switch (xhr.status) {
+      return this.http_error(xhr.status);
+    };
+
+    MainView.prototype.http_error = function(status) {
+      switch (status) {
         case 403:
-          return this.el.innerHTML = "<h2 class=\"center\">" + xhr.status + ": You're not allowed to access this.</h2>";
+          return this.el.innerHTML = "<h2 class=\"center\">" + status + ": You're not allowed to access this.</h2>";
         case 404:
-          return this.el.innerHTML = "<h2 class=\"center\">" + xhr.status + ": Requested document is not found.</h2>";
+          return this.el.innerHTML = "<h2 class=\"center\">" + status + ": Requested document is not found.</h2>";
         case 405:
         case 400:
-          return this.el.innerHTML = "<h2 class=\"center\">" + xhr.status + ": This request is invalid.</h2>";
+          return this.el.innerHTML = "<h2 class=\"center\">" + status + ": This request is invalid.</h2>";
         case 500:
-          return this.el.innerHTML = "<h2 class=\"center\">" + xhr.status + ": The server encountered an error.</h2>";
+          return this.el.innerHTML = "<h2 class=\"center\">" + status + ": The server encountered an error.</h2>";
       }
     };
 
@@ -562,7 +606,13 @@ window['require'] = window['module'] = window['namespace'] = function(name){
     });
     app_router = new AppRouter();
     app_router.on("route:show_my_profile", function() {
-      return main_view.show_profile(logindata.get("current_user_key"));
+      var current_user_key;
+      current_user_key = window.current_user_key || logindata.get("current_user_key");
+      if (current_user_key) {
+        return main_view.show_profile(current_user_key);
+      } else {
+        return main_view.http_error(403);
+      }
     });
     app_router.on("route:show_profile", function(key) {
       return main_view.show_profile(key);

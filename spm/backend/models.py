@@ -85,7 +85,6 @@ class Content(CustomDocument):
   title = StringProperty(required=True)
   content = MarkdownProperty(required=True)
   children = MultiReferenceProperty("self")
-  comments = MultiReferenceProperty("self")
   author = ReferenceProperty(User)
   date = DateTimeProperty()
 
