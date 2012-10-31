@@ -19,7 +19,7 @@
 
   <script src="https://login.persona.org/include.js"></script>
   <script>
-    window.current_user = {% if current_user %}"{{ current_user }}"{% else %} undefined {% endif %};
+    window.current_user_email = {% if current_user_email %}"{{ current_user_email }}"{% else %} undefined {% endif %};
     window.current_user_key = {% if current_user_key %}"{{ current_user_key }}"{% else %} undefined {% endif %};
   </script>
 
@@ -40,12 +40,12 @@
       </ul>
       <section>
         <ul class="left">
-          <li class="has-dropdown" id="nav-projects">
-            <a href="#">Projects</a>
+          <li class="has-dropdown hidden-until-logged-in" id="project-dropdown-li">
+            <a href="#" onclick="return false;">Projects</a>
 
-            <ul class="dropdown">
-              {@ _.each(projects, function(project, index, list)){ @}
-              <li><a href="#/project/{[ project.get('key') ]}">{[ project.get("name") ]}</a></li>
+            <ul class="dropdown" id="project-dropdown">
+              {@ _.each(projects, function(project, index, list){ @}
+              <li><a href="#/p/{[ project['key'] ]}">{[ project["name"] ]}</a></li>
               {@ }); @}
             </ul>
 
@@ -53,7 +53,8 @@
         </ul>
 
         <ul class="right">
-          <li id="profile-link"><a href="#/profile">My Profile</a></li>
+          <li class="hidden-until-logged-in"><a id="new-project-link" href="">New Project</a></li>
+          <li id="profile-link" class="hidden-until-logged-in"><a href="#/profile">My Profile</a></li>
           <li><a href="#" id="persona-login">Login with Your Email</a></li>
         </ul>
       </section>
@@ -108,6 +109,60 @@
       <h2 class="center">You need to sign in to continue!</h2>
     </div>
   </div>
+
+
+  <script type="text/html" id="project-view">
+    <div class="row">
+      <div class="twelve columns">
+        <p class="right project-name"><a href="#/p/{[ project.get('key') ]}/wall" title="{[ project.get('desc') ]}">{[ project.get("name") ]}</a></p>
+        <dl class="tabs">
+          <dd class="active"><a href="#/p/{[ project.get('key') ]}/wall" id="project-wall-link">Announcements</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/schedule" id="project-schedule-link">Schedule</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/todo" id="project-todo-link">Todo</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/files" id="project-files-link">Files</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/discussions" id="project-discussions-link">Discussions</a></dd>
+          {@ if (project.get("owners").toString().indexOf(my_key) != -1){ @}
+          <dd><a href="#/p/{[ project.get('key') ]}/manage" id="project-manage-link">Manage</a></dd>
+          {@ } @}
+        </dl>
+
+        <div class="row">
+          <div class="nine columns">
+            <div id="project-content-view">
+
+            </div>
+          </div>
+          <div class="three columns" id="reminder-list">
+            <div class="panel radius">
+              <h5>Your todos</h5>
+              <ul>
+                {@ _.each(todos, function(todo, index, list){ @}
+                <li>{[ todo["name"] ]} - {[ todo["time_remaining"] ]}</li>
+                {@ }); @}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/html" id="announcement-item">
+    <div class="row">
+      <div class="one columns avatar">
+        <img src="http://www.gravatar.com/avatar/hash?s=50&r=pg" />
+      </div>
+      <div class="eleven columns">
+        <div class="wall-content">
+          <strong>Shuhao</strong>: The next meeting will be blah.
+        </div>
+        <div class="wall-meta">
+          Posted 4 hours ago
+        </div>
+      </div>
+    </div>
+    <hr />
+  </script>
 
   <footer class="row">
     <a href="http://carletonrobotics.com">CU Robotics</a> | Ardroid Group 2012 | <a href="#/credits">Credits</a>

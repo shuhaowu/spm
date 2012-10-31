@@ -7,26 +7,35 @@ class NavBarView extends Backbone.View
     _.bindAll(@)
     @login_link = $("a#persona-login")
     @profile_link = $("li#profile-link a")
+    @projects_dropdown = $("#project-dropdown")
+    @projects_dropdown_template = _.template(@projects_dropdown.html())
+    @projects_dropdown.html("")
 
-    @logindata = @options.logindata
+    @userdata = @options.userdata
     that = this
-    @logindata.on("change:loggedin", (model, loggedin) ->
+    @userdata.on("change:loggedin", (model, loggedin) ->
       if loggedin
         that.login_link.text("Logout")
-        that.profile_link.css("visibility", "visible")
       else
         that.login_link.text("Login with Your Email")
-        that.profile_link.css("visibility", "hidden")
     )
 
-    if window.current_user
-      @logindata.set("loggedin", true)
-      @logindata.set("current_user", window.current_user)
-      @logindata.set("current_user_key", window.current_user_key)
+    @userdata.on("change:projects", (model, projects) ->
+      if projects.length > 0
+        $("li#project-dropdown-li").css("visibility", "visible")
+        that.projects_dropdown.html(that.projects_dropdown_template({projects: projects}))
+      else
+        $("li#project-dropdown-li").css("visibility", "hidden")
+    )
+
+    if window.current_user_email
+      @userdata.set("loggedin", true)
+      @userdata.set("email", window.current_user_email)
+      @userdata.set("key", window.current_user_key)
 
     that = this
     navigator.id.watch({
-      loggedInUser: window.current_user,
+      loggedInUser: window.current_user_email,
       onlogin: ((assertion) ->
         $.ajax({
         type: "POST",
@@ -34,9 +43,9 @@ class NavBarView extends Backbone.View
         data: {assertion: assertion},
         success: ((res, status, xhr) ->
           if res["status"] == "okay"
-            that.logindata.set("loggedin", true)
-            that.logindata.set("current_user", res["email"])
-            that.logindata.set("current_user_key", res["key"])
+            that.userdata.set("loggedin", true)
+            that.userdata.set("email", res["email"])
+            that.userdata.set("key", res["key"])
             post_message("You have logged in as #{res['email']}.", "success")
           else
             that.on_error(res, status)
@@ -45,13 +54,13 @@ class NavBarView extends Backbone.View
         })
       ),
       onlogout: (() ->
-        if that.logindata.get("loggedin")
+        if that.userdata.get("loggedin")
           $.ajax({
             type: "GET",
             url: "/logout/",
             success: ((res, status, xhr) ->
-              that.logindata.set("loggedin", false)
-              that.logindata.set("current_user", undefined)
+              that.userdata.clear({silent: true})
+              that.userdata.set("loggedin", false)
               post_message("You have been logged out.", "success")
             ),
             error: (res, status, xhr) -> that.on_error(res, status)
@@ -64,7 +73,7 @@ class NavBarView extends Backbone.View
     post_message("Authentication Error: #{res['status']} #{res['statusText']}", "alert")
 
   on_login_click: () ->
-    if (@logindata.get("loggedin"))
+    if (@userdata.get("loggedin"))
       @login_link.text("Signing out, please wait...")
       navigator.id.logout()
     else

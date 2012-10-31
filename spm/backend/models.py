@@ -63,21 +63,32 @@ A DocDict object with an html field.
 class CustomDocument(Document):
   client = riak.RiakClient(port=8087, transport_class=riak.RiakPbcTransport)
 
-class Project(CustomDocument):
-  bucket_name = "spm_projects"
-
-  name = StringProperty()
-  desc = StringProperty()
-
-  # 2i for "project_owner_bin" -> userkey
-  # 2i for "project_participant_bin" -> userkey
-
 class User(CustomDocument):
   bucket_name = "spm_user"
 
   # email in 2i
   name = StringProperty()
   positions = DictProperty() # project key -> position name
+
+
+class TodoItem(CustomDocument):
+  bucket_name ="spm_todo_items"
+
+  name = StringProperty()
+  desc = StringProperty()
+  duedate = DateTimeProperty()
+
+  # 2i for assigned_to_bin
+  # 2i for category
+
+class Project(CustomDocument):
+  bucket_name = "spm_projects"
+
+  name = StringProperty()
+  desc = StringProperty()
+
+  # 2i for "owner_bin" -> userkey
+  # 2i for "participant_bin" -> userkey
 
 class Content(CustomDocument):
   bucket_name = ["spm_posts", "spm_comments", "spm_forumposts"]

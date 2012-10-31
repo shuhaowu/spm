@@ -10,7 +10,7 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 @app.before_request
 def before_request():
   app.jinja_env.globals["current_user_key"] = session.get("key", None)
-  app.jinja_env.globals["current_user"] = session.get("email", None)
+  app.jinja_env.globals["current_user_email"] = session.get("email", None)
 
 for blueprint, meta in blueprints:
   app.register_blueprint(blueprint, **meta)

@@ -9,9 +9,18 @@ _.templateSettings = {
 class AppRouter extends Backbone.Router
   routes:
     "home" : "home"
-    "p/:key" : "show_project"
+
     "profile/:key" : "show_profile"
     "profile"     : "show_my_profile"
+
+    "p/:key" : "show_project"
+    "p/:key/wall" : "show_project_wall"
+    "p/:key/schedule" : "show_project_schedule"
+    "p/:key/todo" : "show_project_todo"
+    "p/:key/file" : "show_project_file"
+    "p/:key/discussions" : "show_project_discussions"
+    "p/:key/manage" : "show_project_manage"
+
 
 $(document).ready(
   (e) ->
@@ -25,15 +34,22 @@ $(document).ready(
       message = new models["Message"]({type: type, content: content})
       message_collection.add(message)
 
-    logindata = new models["LoginData"]()
+    userdata = new models["UserData"]()
 
-    message_view = new views["FlashMessagesView"]({el: $("div#messages"), message_collection: message_collection})
-    main_view = new views["MainView"]({el: $("div#main"), message_collection: message_collection, logindata: logindata})
-    login_view = new views["NavBarView"]({el: $("nav.top-bar"), message_collection: message_collection, logindata: logindata})
+    userdata.on("change:loggedin", (model, loggedin) ->
+      $(".hidden-until-logged-in").css("visibility", if loggedin then "visible" else "hidden")
+      if loggedin
+        userdata.update_personalized_data()
+    )
 
     app_router = new AppRouter()
+
+    message_view = new views["FlashMessagesView"]({el: $("div#messages"), message_collection: message_collection})
+    main_view = new views["MainView"]({el: $("div#main"), message_collection: message_collection, userdata: userdata, router: app_router})
+    login_view = new views["NavBarView"]({el: $("nav.top-bar"), message_collection: message_collection, userdata: userdata})
+
     app_router.on("route:show_my_profile", () ->
-      current_user_key = window.current_user_key || logindata.get("current_user_key")
+      current_user_key = window.current_user_key || userdata.get("key")
       if current_user_key
         main_view.show_profile(current_user_key)
       else
@@ -43,5 +59,10 @@ $(document).ready(
     app_router.on("route:show_profile", (key) ->
       main_view.show_profile(key)
     )
+
+    app_router.on("route:show_project", (key) ->
+      main_view.show_project(key)
+    )
+
     Backbone.history.start()
 )

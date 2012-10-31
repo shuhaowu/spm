@@ -1,10 +1,24 @@
 exports = namespace "models"
 
-class LoginData extends Backbone.Model
+class UserData extends Backbone.Model
 
   defaults:
     loggedin: false
-    current_user: window.current_user
+    email: window.current_user_email
+    key: window.current_user_key
+
+  update_personalized_data: () ->
+    that = this
+    $.ajax(
+      type: "GET"
+      url: "/mydata"
+      success: ((res, status, xhr) ->
+        that.set(res)
+      )
+      error: ((xhr, status, error) ->
+        post_message("Something has gone wrong: #{xhr.stats} #{error}", "alert")
+      )
+    )
 
 class Message extends Backbone.Model
   defaults:
@@ -21,7 +35,7 @@ class User extends Backbone.Model
 
 class Project extends Backbone.Model
 
-exports["LoginData"] = LoginData
+exports["UserData"] = UserData
 exports["Message"] = Message
 exports["MessageList"] = MessageList
 exports["User"] = User

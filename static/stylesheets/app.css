@@ -11,8 +11,15 @@ footer.row { text-align: center; font-size: 10px; color: #CCC; margin-top: 1em; 
 
 .profile-name { font-size: 1.5em; font-weight: bold; }
 #profile-change-name, #profile-cancel-change-name { font-size: 0.5em; font-weight: normal; vertical-align: middle; }
-#profile-cancel-change-name { visibility: hidden; }
+.hidden-until-logged-in, #profile-cancel-change-name { visibility: hidden; }
 .profile-name img { vertical-align: middle; margin-right: 10px; }
 .profile-edit { line-height: 60px; }
 .vcard dl { display: block; margin: 8px 10px 8px; }
 .vcard dl dt { display: block; float: left; width: 120px; color: #999; }
+
+#reminder-list ul { list-style: none; margin-left: 1em; }
+
+p.project-name { margin-bottom: 5px; font-weight: bold; font-size: 1.5em; color: #666; }
+.wall-meta { float: right; }
+div.avatar { padding-right: 0px; }
+div.avatar img { float: right; display: block; }

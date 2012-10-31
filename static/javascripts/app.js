@@ -14,26 +14,42 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
 // coffeedev/models/models.coffee
 (function() {
-  var LoginData, Message, MessageList, Project, User, exports,
+  var Message, MessageList, Project, User, UserData, exports,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   exports = namespace("models");
 
-  LoginData = (function(_super) {
+  UserData = (function(_super) {
 
-    __extends(LoginData, _super);
+    __extends(UserData, _super);
 
-    function LoginData() {
-      return LoginData.__super__.constructor.apply(this, arguments);
+    function UserData() {
+      return UserData.__super__.constructor.apply(this, arguments);
     }
 
-    LoginData.prototype.defaults = {
+    UserData.prototype.defaults = {
       loggedin: false,
-      current_user: window.current_user
+      email: window.current_user_email,
+      key: window.current_user_key
     };
 
-    return LoginData;
+    UserData.prototype.update_personalized_data = function() {
+      var that;
+      that = this;
+      return $.ajax({
+        type: "GET",
+        url: "/mydata",
+        success: (function(res, status, xhr) {
+          return that.set(res);
+        }),
+        error: (function(xhr, status, error) {
+          return post_message("Something has gone wrong: " + xhr.stats + " " + error, "alert");
+        })
+      });
+    };
+
+    return UserData;
 
   })(Backbone.Model);
 
@@ -98,7 +114,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
   })(Backbone.Model);
 
-  exports["LoginData"] = LoginData;
+  exports["UserData"] = UserData;
 
   exports["Message"] = Message;
 
@@ -216,25 +232,36 @@ window['require'] = window['module'] = window['namespace'] = function(name){
       _.bindAll(this);
       this.login_link = $("a#persona-login");
       this.profile_link = $("li#profile-link a");
-      this.logindata = this.options.logindata;
+      this.projects_dropdown = $("#project-dropdown");
+      this.projects_dropdown_template = _.template(this.projects_dropdown.html());
+      this.projects_dropdown.html("");
+      this.userdata = this.options.userdata;
       that = this;
-      this.logindata.on("change:loggedin", function(model, loggedin) {
+      this.userdata.on("change:loggedin", function(model, loggedin) {
         if (loggedin) {
-          that.login_link.text("Logout");
-          return that.profile_link.css("visibility", "visible");
+          return that.login_link.text("Logout");
         } else {
-          that.login_link.text("Login with Your Email");
-          return that.profile_link.css("visibility", "hidden");
+          return that.login_link.text("Login with Your Email");
         }
       });
-      if (window.current_user) {
-        this.logindata.set("loggedin", true);
-        this.logindata.set("current_user", window.current_user);
-        this.logindata.set("current_user_key", window.current_user_key);
+      this.userdata.on("change:projects", function(model, projects) {
+        if (projects.length > 0) {
+          $("li#project-dropdown-li").css("visibility", "visible");
+          return that.projects_dropdown.html(that.projects_dropdown_template({
+            projects: projects
+          }));
+        } else {
+          return $("li#project-dropdown-li").css("visibility", "hidden");
+        }
+      });
+      if (window.current_user_email) {
+        this.userdata.set("loggedin", true);
+        this.userdata.set("email", window.current_user_email);
+        this.userdata.set("key", window.current_user_key);
       }
       that = this;
       return navigator.id.watch({
-        loggedInUser: window.current_user,
+        loggedInUser: window.current_user_email,
         onlogin: (function(assertion) {
           return $.ajax({
             type: "POST",
@@ -244,9 +271,9 @@ window['require'] = window['module'] = window['namespace'] = function(name){
             },
             success: (function(res, status, xhr) {
               if (res["status"] === "okay") {
-                that.logindata.set("loggedin", true);
-                that.logindata.set("current_user", res["email"]);
-                that.logindata.set("current_user_key", res["key"]);
+                that.userdata.set("loggedin", true);
+                that.userdata.set("email", res["email"]);
+                that.userdata.set("key", res["key"]);
                 return post_message("You have logged in as " + res['email'] + ".", "success");
               } else {
                 return that.on_error(res, status);
@@ -258,13 +285,15 @@ window['require'] = window['module'] = window['namespace'] = function(name){
           });
         }),
         onlogout: (function() {
-          if (that.logindata.get("loggedin")) {
+          if (that.userdata.get("loggedin")) {
             return $.ajax({
               type: "GET",
               url: "/logout/",
               success: (function(res, status, xhr) {
-                that.logindata.set("loggedin", false);
-                that.logindata.set("current_user", void 0);
+                that.userdata.clear({
+                  silent: true
+                });
+                that.userdata.set("loggedin", false);
                 return post_message("You have been logged out.", "success");
               }),
               error: function(res, status, xhr) {
@@ -282,7 +311,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
     };
 
     NavBarView.prototype.on_login_click = function() {
-      if (this.logindata.get("loggedin")) {
+      if (this.userdata.get("loggedin")) {
         this.login_link.text("Signing out, please wait...");
         return navigator.id.logout();
       } else {
@@ -412,7 +441,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
 // coffeedev/views/main.coffee
 (function() {
-  var HomeView, MainView, exports, models, vp,
+  var MainView, ProjectView, exports, models, vp,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -422,22 +451,49 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
   models = require("models");
 
-  HomeView = (function(_super) {
+  ProjectView = (function(_super) {
 
-    __extends(HomeView, _super);
+    __extends(ProjectView, _super);
 
-    function HomeView() {
-      return HomeView.__super__.constructor.apply(this, arguments);
+    function ProjectView() {
+      return ProjectView.__super__.constructor.apply(this, arguments);
     }
 
-    HomeView.prototype.initialize = function() {
+    ProjectView.prototype.initialize = function() {
       var that;
       _.bindAll(this);
       that = this;
-      return this.project = new models.Project();
+      this.project = new models.Project();
+      return this.template = _.template(this.options.template);
     };
 
-    return HomeView;
+    ProjectView.prototype.set_project_and_render = function(key) {
+      var that;
+      that = this;
+      return $.ajax({
+        type: "GET",
+        url: "/projects/view/" + key,
+        success: (function(res, status, xhr) {
+          that.project.set(res, {
+            silent: true
+          });
+          return that.render();
+        }),
+        error: function(xhr, status, error) {
+          return that.options.mainview.on_loading_error(xhr);
+        }
+      });
+    };
+
+    ProjectView.prototype.render = function() {
+      return this.el.innerHTML = this.template({
+        project: this.project,
+        todos: this.options.userdata.get("todos"),
+        my_key: this.options.userdata.get("key")
+      });
+    };
+
+    return ProjectView;
 
   })(Backbone.View);
 
@@ -459,7 +515,16 @@ window['require'] = window['module'] = window['namespace'] = function(name){
         template: $("#profile-view").html(),
         mainview: this
       });
-      return this.options.logindata.on("change:loggedin", function(model, loggedin) {
+      this.project_view = new ProjectView({
+        el: this.el,
+        template: $("#project-view").html(),
+        mainview: this,
+        userdata: this.options.userdata
+      });
+      $("a#new-project-link").click(function(ev) {
+        return that.on_new_project_click(ev);
+      });
+      return this.options.userdata.on("change:loggedin", function(model, loggedin) {
         if (loggedin) {
           return that.on_login();
         } else {
@@ -481,6 +546,13 @@ window['require'] = window['module'] = window['namespace'] = function(name){
     MainView.prototype.show_profile = function(key) {
       if (this.profile_view !== this.current_view || this.profile_view.user.get("key") !== key) {
         this.profile_view.set_user_and_render(key);
+        return this.current_view = this.profile_view;
+      }
+    };
+
+    MainView.prototype.show_project = function(key) {
+      if (this.project_view !== this.current_view || this.project_view.project.get("key") !== key) {
+        this.project_view.set_project_and_render(key);
         return this.current_view = this.profile_view;
       }
     };
@@ -508,6 +580,33 @@ window['require'] = window['module'] = window['namespace'] = function(name){
           return this.el.innerHTML = "<h2 class=\"center\">" + status + ": This request is invalid.</h2>";
         case 500:
           return this.el.innerHTML = "<h2 class=\"center\">" + status + ": The server encountered an error.</h2>";
+      }
+    };
+
+    MainView.prototype.on_new_project_click = function(ev) {
+      var project_name, that;
+      ev.preventDefault();
+      project_name = $.trim(prompt("Project Name"));
+      that = this;
+      if (project_name === "") {
+        return post_message("You need a name for a new project!", "alert");
+      } else if (project_name !== null) {
+        return $.ajax({
+          type: "POST",
+          url: "/projects/new",
+          data: {
+            name: project_name
+          },
+          success: (function(res, status, xhr) {
+            that.options.router.navigate("p/" + res['key'], {
+              trigger: true
+            });
+            return post_message("New project created!", "success");
+          }),
+          error: (function(xhr, status, error) {
+            return post_message("Project creation failed (" + xhr.status + " " + error + ").", "alert");
+          })
+        });
       }
     };
 
@@ -566,9 +665,15 @@ window['require'] = window['module'] = window['namespace'] = function(name){
 
     AppRouter.prototype.routes = {
       "home": "home",
-      "p/:key": "show_project",
       "profile/:key": "show_profile",
-      "profile": "show_my_profile"
+      "profile": "show_my_profile",
+      "p/:key": "show_project",
+      "p/:key/wall": "show_project_wall",
+      "p/:key/schedule": "show_project_schedule",
+      "p/:key/todo": "show_project_todo",
+      "p/:key/file": "show_project_file",
+      "p/:key/discussions": "show_project_discussions",
+      "p/:key/manage": "show_project_manage"
     };
 
     return AppRouter;
@@ -576,7 +681,7 @@ window['require'] = window['module'] = window['namespace'] = function(name){
   })(Backbone.Router);
 
   $(document).ready(function(e) {
-    var app_router, login_view, logindata, main_view, message_collection, message_view;
+    var app_router, login_view, main_view, message_collection, message_view, userdata;
     $.ajaxSetup({
       dataType: "json"
     });
@@ -589,7 +694,14 @@ window['require'] = window['module'] = window['namespace'] = function(name){
       });
       return message_collection.add(message);
     };
-    logindata = new models["LoginData"]();
+    userdata = new models["UserData"]();
+    userdata.on("change:loggedin", function(model, loggedin) {
+      $(".hidden-until-logged-in").css("visibility", loggedin ? "visible" : "hidden");
+      if (loggedin) {
+        return userdata.update_personalized_data();
+      }
+    });
+    app_router = new AppRouter();
     message_view = new views["FlashMessagesView"]({
       el: $("div#messages"),
       message_collection: message_collection
@@ -597,17 +709,17 @@ window['require'] = window['module'] = window['namespace'] = function(name){
     main_view = new views["MainView"]({
       el: $("div#main"),
       message_collection: message_collection,
-      logindata: logindata
+      userdata: userdata,
+      router: app_router
     });
     login_view = new views["NavBarView"]({
       el: $("nav.top-bar"),
       message_collection: message_collection,
-      logindata: logindata
+      userdata: userdata
     });
-    app_router = new AppRouter();
     app_router.on("route:show_my_profile", function() {
       var current_user_key;
-      current_user_key = window.current_user_key || logindata.get("current_user_key");
+      current_user_key = window.current_user_key || userdata.get("key");
       if (current_user_key) {
         return main_view.show_profile(current_user_key);
       } else {
@@ -616,6 +728,9 @@ window['require'] = window['module'] = window['namespace'] = function(name){
     });
     app_router.on("route:show_profile", function(key) {
       return main_view.show_profile(key);
+    });
+    app_router.on("route:show_project", function(key) {
+      return main_view.show_project(key);
     });
     return Backbone.history.start();
   });

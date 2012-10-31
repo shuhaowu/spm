@@ -36,7 +36,7 @@ def login():
 @blueprint.route("/logout/")
 def logout():
   session.pop("email", None)
-  session.pop("ukey", None)
+  session.pop("key", None)
   return jsonify(status="okay")
 
 @blueprint.route("/profile/changename", methods=["POST"])
@@ -44,15 +44,26 @@ def logout():
 def change_name():
   if "name" not in request.form:
     return abort(400)
-  users.change_name(session["ukey"], request.form["name"])
+  users.change_name(session["key"], request.form["name"])
   return jsonify(status="ok")
 
 @blueprint.route("/profile/<key>")
 @login_required
 def view_profile(key):
   try:
-    u = users.get_user_profile(key)
+    simple = request.args.get("simple", False)
+    if simple:
+      u = users.get_simple_profile(key)
+    else:
+      u = users.get_user_profile(key)
     u["status"] = "ok"
     return jsonify(u)
   except NotFoundError:
     return abort(404)
+
+@blueprint.route("/mydata")
+@login_required
+def get_personalized_data():
+  data = users.get_personalized_data(session["key"])
+  data["status"] = "ok"
+  return jsonify(data)

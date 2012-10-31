@@ -2,12 +2,29 @@ exports = namespace "views.main"
 vp = require "views.profile"
 models = require "models"
 
-class HomeView extends Backbone.View
+class ProjectView extends Backbone.View
   initialize: () ->
     _.bindAll(@)
     that = this
 
     @project = new models.Project()
+    @template = _.template(@options.template)
+
+  set_project_and_render: (key) ->
+    that = this
+    $.ajax(
+      type: "GET"
+      url: "/projects/view/#{key}"
+      success: ((res, status, xhr) ->
+        that.project.set(res, {silent: true})
+        that.render()
+      )
+      error: (xhr, status, error) ->
+        that.options.mainview.on_loading_error(xhr)
+    )
+
+  render: () ->
+    @el.innerHTML = @template({project: @project, todos: @options.userdata.get("todos"), my_key: @options.userdata.get("key")})
 
 class MainView extends Backbone.View
   initialize: () ->
@@ -15,8 +32,10 @@ class MainView extends Backbone.View
     that = this
     @current_view = null
     @profile_view = new vp.ProfileView({el: @el, template: $("#profile-view").html(), mainview: this})
+    @project_view = new ProjectView({el: @el, template: $("#project-view").html(), mainview: this, userdata: @options.userdata})
+    $("a#new-project-link").click((ev) -> that.on_new_project_click(ev))
 
-    @options.logindata.on("change:loggedin", (model, loggedin) ->
+    @options.userdata.on("change:loggedin", (model, loggedin) ->
       if loggedin
         that.on_login()
       else
@@ -33,6 +52,11 @@ class MainView extends Backbone.View
   show_profile: (key) ->
     if @profile_view != @current_view or @profile_view.user.get("key") != key
       @profile_view.set_user_and_render(key)
+      @current_view = @profile_view
+
+  show_project: (key) ->
+    if @project_view != @current_view or @project_view.project.get("key") != key
+      @project_view.set_project_and_render(key)
       @current_view = @profile_view
 
   render: () -> @current_view.render()
@@ -53,6 +77,26 @@ class MainView extends Backbone.View
         @el.innerHTML = "<h2 class=\"center\">#{status}: This request is invalid.</h2>"
       when 500
         @el.innerHTML = "<h2 class=\"center\">#{status}: The server encountered an error.</h2>"
+
+  on_new_project_click: (ev) ->
+    ev.preventDefault()
+    project_name = $.trim(prompt("Project Name"))
+    that = this
+    if project_name == ""
+      post_message("You need a name for a new project!", "alert")
+    else if project_name != null
+      $.ajax(
+        type: "POST"
+        url: "/projects/new"
+        data: {name: project_name}
+        success: ((res, status, xhr) ->
+          that.options.router.navigate("p/#{res['key']}", {trigger: true})
+          post_message("New project created!", "success")
+        )
+        error: ((xhr, status, error) ->
+          post_message("Project creation failed (#{xhr.status} #{error}).", "alert")
+        )
+      )
 
 
 exports["MainView"] = MainView
