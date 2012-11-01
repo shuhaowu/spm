@@ -23,3 +23,4 @@ p.project-name { margin-bottom: 5px; font-weight: bold; font-size: 1.5em; color:
 .wall-meta { float: right; }
 div.avatar { padding-right: 0px; }
 div.avatar img { float: right; display: block; }
+.wall-poster-container { display: none; }

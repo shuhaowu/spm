@@ -1,30 +1,7 @@
 exports = namespace "views.main"
 vp = require "views.profile"
 models = require "models"
-
-class ProjectView extends Backbone.View
-  initialize: () ->
-    _.bindAll(@)
-    that = this
-
-    @project = new models.Project()
-    @template = _.template(@options.template)
-
-  set_project_and_render: (key) ->
-    that = this
-    $.ajax(
-      type: "GET"
-      url: "/projects/view/#{key}"
-      success: ((res, status, xhr) ->
-        that.project.set(res, {silent: true})
-        that.render()
-      )
-      error: (xhr, status, error) ->
-        that.options.mainview.on_loading_error(xhr)
-    )
-
-  render: () ->
-    @el.innerHTML = @template({project: @project, todos: @options.userdata.get("todos"), my_key: @options.userdata.get("key")})
+project = require "views.project"
 
 class MainView extends Backbone.View
   initialize: () ->
@@ -32,7 +9,7 @@ class MainView extends Backbone.View
     that = this
     @current_view = null
     @profile_view = new vp.ProfileView({el: @el, template: $("#profile-view").html(), mainview: this})
-    @project_view = new ProjectView({el: @el, template: $("#project-view").html(), mainview: this, userdata: @options.userdata})
+    @project_view = new project.ProjectView({el: @el, template: $("#project-view").html(), mainview: this, userdata: @options.userdata})
     $("a#new-project-link").click((ev) -> that.on_new_project_click(ev))
 
     @options.userdata.on("change:loggedin", (model, loggedin) ->
@@ -54,9 +31,9 @@ class MainView extends Backbone.View
       @profile_view.set_user_and_render(key)
       @current_view = @profile_view
 
-  show_project: (key) ->
+  show_project: (key, page="wall") ->
     if @project_view != @current_view or @project_view.project.get("key") != key
-      @project_view.set_project_and_render(key)
+      @project_view.set_project_and_render(key, page)
       @current_view = @profile_view
 
   render: () -> @current_view.render()

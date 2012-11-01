@@ -116,13 +116,13 @@
       <div class="twelve columns">
         <p class="right project-name"><a href="#/p/{[ project.get('key') ]}/wall" title="{[ project.get('desc') ]}">{[ project.get("name") ]}</a></p>
         <dl class="tabs">
-          <dd class="active"><a href="#/p/{[ project.get('key') ]}/wall" id="project-wall-link">Announcements</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/schedule" id="project-schedule-link">Schedule</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/todo" id="project-todo-link">Todo</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/files" id="project-files-link">Files</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/discussions" id="project-discussions-link">Discussions</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/wall" class="project-nav-link" id="project-wall-link">Wall</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/schedule" class="project-nav-link" id="project-schedule-link">Schedule</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/todo" class="project-nav-link" id="project-todo-link">Todo</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/files" class="project-nav-link" id="project-files-link">Files</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/discussions" class="project-nav-link" id="project-discussions-link">Discussions</a></dd>
           {@ if (project.get("owners").toString().indexOf(my_key) != -1){ @}
-          <dd><a href="#/p/{[ project.get('key') ]}/manage" id="project-manage-link">Manage</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/manage" class="project-nav-link" id="project-manage-link">Manage</a></dd>
           {@ } @}
         </dl>
 
@@ -147,17 +147,27 @@
     </div>
   </script>
 
-  <script type="text/html" id="announcement-item">
+  <script type="text/html" id="project-wall-view">
+    <div class="wall-poster-container">
+      <textarea placeholder="Wall Post" id="wall-add-post-textarea"></textarea>
+      <a class="right small radius button" id="wall-post-button">Post</a>
+      <br class="clear" />
+      <hr />
+    </div>
+    <div class="wall-post-container"></div>
+  </script>
+
+  <script type="text/html" id="wall-item">
     <div class="row">
       <div class="one columns avatar">
         <img src="http://www.gravatar.com/avatar/hash?s=50&r=pg" />
       </div>
       <div class="eleven columns">
         <div class="wall-content">
-          <strong>Shuhao</strong>: The next meeting will be blah.
+          <strong>{[ post.get("author") ]}</strong>: {[ post.get("content") ]}
         </div>
         <div class="wall-meta">
-          Posted 4 hours ago
+          Posted on {[ utils.relative_time(post.get("pubdate")) ]}
         </div>
       </div>
     </div>

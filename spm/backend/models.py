@@ -1,5 +1,5 @@
 from riakkit import Document, StringProperty, DictProperty, BaseProperty, \
-    MultiReferenceProperty, ReferenceProperty, DateTimeProperty
+    MultiReferenceProperty, ReferenceProperty, DateTimeProperty, ListProperty
 import riak
 
 import markdown
@@ -81,6 +81,17 @@ class TodoItem(CustomDocument):
   # 2i for assigned_to_bin
   # 2i for category
 
+class Content(CustomDocument):
+  bucket_name = ["spm_wallposts", "spm_comments"]
+
+  title = StringProperty()
+  content = MarkdownProperty()
+  children = MultiReferenceProperty("self")
+  author = ReferenceProperty(User)
+  date = DateTimeProperty()
+
+  # project in 2i
+
 class Project(CustomDocument):
   bucket_name = "spm_projects"
 
@@ -89,17 +100,6 @@ class Project(CustomDocument):
 
   # 2i for "owner_bin" -> userkey
   # 2i for "participant_bin" -> userkey
-
-class Content(CustomDocument):
-  bucket_name = ["spm_posts", "spm_comments", "spm_forumposts"]
-
-  title = StringProperty(required=True)
-  content = MarkdownProperty(required=True)
-  children = MultiReferenceProperty("self")
-  author = ReferenceProperty(User)
-  date = DateTimeProperty()
-
-  # project in 2i
 
 class Files(CustomDocument):
   bucket_name = "spm_attachment"

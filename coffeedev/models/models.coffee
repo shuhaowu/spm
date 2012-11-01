@@ -35,8 +35,32 @@ class User extends Backbone.Model
 
 class Project extends Backbone.Model
 
+class WallPost extends Backbone.Model
+
+class Wall extends Backbone.Collection
+  model: WallPost
+
+  initialize: () ->
+    @key = undefined
+
+  fetch: () ->
+    if @key != undefined
+      that = this
+      $.ajax(
+        type: "GET"
+        url: "/projects/wall/#{that.key}"
+        success: ((res, status, xhr) ->
+          for post in res["posts"]
+            that.add(new WallPost(post))
+        )
+        error: (xhr, status, error) ->
+          post_message("Failed to update wall (#{xhr.status} {error})", "alert")
+      )
+
 exports["UserData"] = UserData
 exports["Message"] = Message
 exports["MessageList"] = MessageList
 exports["User"] = User
 exports["Project"] = Project
+exports["Wall"] = Wall
+exports["WallPost"] = WallPost

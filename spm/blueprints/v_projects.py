@@ -20,6 +20,7 @@ def new_project():
   return jsonify(status="ok", key=project.key)
 
 @blueprint.route("/view/<key>")
+@login_required
 def view_project(key):
   try:
     project = projects.get_project_json(key)
@@ -27,3 +28,38 @@ def view_project(key):
     return abort(404)
   project["status"] = "ok"
   return jsonify(project)
+
+@blueprint.route("/wall/<key>")
+@login_required
+def get_wall_posts(key):
+  try:
+    posts = projects.get_all_posts_from_project(key)
+  except NotFoundError:
+    return abort(404)
+  return jsonify(status="ok", posts=posts)
+
+@blueprint.route("/wall/<key>/add", methods=["POST"])
+@login_required
+def add_wall_post(key):
+  try:
+    if session["key"] in projects.get_project_json(key)["owners"]:
+      post = projects.add_wall_post(key, request.form["content"], session["key"])
+      return jsonify(status="ok", post={"key": post.key, "content": post.title, "author": post.author.name, "pubdate": post.date.isoformat()})
+    else:
+      return abort(403)
+  except NotFoundError:
+    return abort(404)
+
+@blueprint.route("/wall/<key>/del", methods=["DELETE"])
+@login_required
+def del_wall_post(key):
+  try:
+    post = projects.get_wall_post(key)
+  except NotFoundError:
+    return abort(404)
+
+  if post.getRawData("author") == session["key"]:
+    post.delete()
+    return jsonify(status="ok")
+  else:
+    return abort(403)

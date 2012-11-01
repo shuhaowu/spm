@@ -64,5 +64,9 @@ $(document).ready(
       main_view.show_project(key)
     )
 
+    app_router.on("route:show_project_wall", (key) ->
+      main_view.show_project(key, "wall")
+    )
+
     Backbone.history.start()
 )
