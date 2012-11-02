@@ -27,14 +27,22 @@ class MainView extends Backbone.View
     @login_required()
 
   show_profile: (key) ->
-    if @profile_view != @current_view or @profile_view.user.get("key") != key
-      @profile_view.set_user_and_render(key)
+    if @profile_view != @current_view
       @current_view = @profile_view
 
+    if @profile_view.user.get("key") != key
+      @profile_view.set_user_and_render(key)
+    else
+      @render()
+
   show_project: (key, page="wall") ->
-    if @project_view != @current_view or @project_view.project.get("key") != key
+    if @project_view != @current_view
+      @current_view = @project_view
+
+    if @project_view.project.get("key") != key
       @project_view.set_project_and_render(key, page)
-      @current_view = @profile_view
+    else
+      @project_view.render_page(page)
 
   render: () -> @current_view.render()
 

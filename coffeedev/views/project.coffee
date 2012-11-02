@@ -15,11 +15,16 @@ class WallView extends Backbone.View
     that = this
     @wall.on("add", (item) -> that.add_item(item))
     @wall.on("reset", () -> $(".wall-post-container", that.el).html(""))
+    @wall.on("remove", (item, collection) -> that.remove_item(item))
 
   add_item: (item) ->
     div = $(document.createElement("div")).html(@wall_item_template({post: item})).css("display", "none")
     $(".wall-post-container", @el).prepend(div)
     div.fadeIn()
+    item.div = div
+
+  remove_item: (item) ->
+    item.div.fadeOut("normal", () -> item.div.remove())
 
   set_project: (project) ->
     @wall.key = project.get("key")
@@ -31,7 +36,9 @@ class WallView extends Backbone.View
     @wall.reset()
     @wall.fetch()
 
-  render: () -> @el
+  render: () ->
+    @wall.fetch()
+    @el
 
   on_post_button_clicked: (ev) ->
     ev.preventDefault()
@@ -41,21 +48,44 @@ class WallView extends Backbone.View
     if content.length <= 0
       post_message("You need some text for a wall post!", "alert") # use foundation form errors?
     else
-      $.ajax(
-        type: "POST"
-        url: "/projects/wall/#{that.wall.key}/add"
-        data: {content: content}
-        success: ((res, status, xhr) ->
-          post_message("Added a wall post!", "success")
-          that.wall.add(new models.WallPost(res["post"]))
+      statusmsg.display("Posting...")
+      wallpost = new models.WallPost()
+      wallpost["project_key"] = @wall.key
+      wallpost.set("content", content)
+      wallpost.save(null,
+        success: (() ->
+          that.wall.add(wallpost)
           textarea.val("")
+          statusmsg.close()
         )
-        error: (xhr, status, error) ->
-          post_message("Failed to post update (#{xhr.status} #{error})", "alert")
+        error: ((xhr, status, error) -> post_message("Failed to post update (#{xhr.status} #{error})", "alert"))
+      )
+
+  on_delete_post_clicked: (ev) ->
+    if (confirm("Are you sure you want to delete this post?"))
+      ev.preventDefault()
+      key = $(ev.target).attr("data-key")
+      statusmsg.display("Deleting...")
+      @wall.get(key).destroy(
+        success: () -> statusmsg.close()
       )
 
   events:
     "click a#wall-post-button" : "on_post_button_clicked"
+    "click a.delete-post" : "on_delete_post_clicked"
+
+class TodoView extends Backbone.View
+  tagName: "div"
+
+  initialize: () ->
+    _.bindAll(@)
+    @name = "todo"
+    @todos_list = new models.TodoList()
+
+  render: () ->
+    @el
+
+  set_project: (project) -> @project = project
 
 class ProjectView extends Backbone.View
   initialize: () ->
@@ -66,9 +96,9 @@ class ProjectView extends Backbone.View
     @template = _.template(@options.template)
     @current_nav_dd = null
     @views =
-      wall: new WallView({userdata: @options.userdata})
+      wall: new WallView({userdata: @options.userdata, project_view: @})
+      todo: new TodoView({userdata: @options.userdata, project_view: @})
       #schedule: "schedule view"
-      #todo: "todo view"
       #file: "file view"
       #discussions: "discussions view"
       #manage: "manage view"

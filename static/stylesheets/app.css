@@ -1,8 +1,12 @@
 .center { text-align: center; }
 .right { float: right; }
+.left { float: left; }
 .textright { text-align: right; }
 p.title { font-weight: bold; font-size: 1.5em; }
 ul { margin-left: 2em; }
+.red { color: red; }
+
+.statusmsg { position: fixed; top: 2em; color: #000; border-radius: 5px; background-color: #D4FFA8; text-align: center; display: none; z-index: 1000; padding: 0.5em 0.8em; }
 
 a#persona-login{ color: orange; }
 li#profile-link, li#nav-projects { visibility: hidden; }
@@ -23,4 +27,4 @@ p.project-name { margin-bottom: 5px; font-weight: bold; font-size: 1.5em; color:
 .wall-meta { float: right; }
 div.avatar { padding-right: 0px; }
 div.avatar img { float: right; display: block; }
-.wall-poster-container { display: none; }
+.wall-poster-container { display: none;}

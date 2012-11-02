@@ -33,6 +33,8 @@ class FlashMessagesView extends Backbone.View
 
   add_message: (message) ->
     mview = new SingleFlashMessageView({model: message, template: @template})
-    $(@el).append(mview.render())
+    mnode = $(mview.render()).css("display", "none")
+    $(@el).append(mnode)
+    mnode.fadeIn()
 
 exports["FlashMessagesView"] = FlashMessagesView

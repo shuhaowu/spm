@@ -34,6 +34,7 @@ def do_login(assertion):
 def get_user_simple(key):
   user = User.get(key)
   user_json = {
+    "key" : key,
     "name" : user.name,
     "positions" : user.positions,
     "emails" : list(user.indexes("email_bin"))
@@ -54,6 +55,7 @@ def get_user_profile(key):
   user = User.get(key)
 
   user_json = {
+    "key" : user.key,
     "name": user.name,
     "positions": user.positions,
     "projects": get_user_projects_with_simple(user),

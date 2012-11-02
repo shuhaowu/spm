@@ -77,7 +77,7 @@
       <div class="row">
         <div class="eight columns">
           <p class="profile-name">
-            <img src="http://www.gravatar.com/avatar/{[ user.get('email_hash') ]}?r=pg&s=60" />
+            <img src="http://www.gravatar.com/avatar/{[ hex_md5(user.get('emails')[0]) ]}?r=pg&s=60" title="Your avatar can be changed at gravatar.com" />
             <span>{[ user.get("name") ]}</span> <a href="" id="profile-change-name">Change</a>
             <a href="" id="profile-cancel-change-name">Cancel</a>
           </p>
@@ -117,10 +117,10 @@
         <p class="right project-name"><a href="#/p/{[ project.get('key') ]}/wall" title="{[ project.get('desc') ]}">{[ project.get("name") ]}</a></p>
         <dl class="tabs">
           <dd><a href="#/p/{[ project.get('key') ]}/wall" class="project-nav-link" id="project-wall-link">Wall</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/schedule" class="project-nav-link" id="project-schedule-link">Schedule</a></dd>
           <dd><a href="#/p/{[ project.get('key') ]}/todo" class="project-nav-link" id="project-todo-link">Todo</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/schedule" class="project-nav-link" id="project-schedule-link">Schedule</a></dd>
           <dd><a href="#/p/{[ project.get('key') ]}/files" class="project-nav-link" id="project-files-link">Files</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/discussions" class="project-nav-link" id="project-discussions-link">Discussions</a></dd>
+          <!-- <dd><a href="#/p/{[ project.get('key') ]}/discussions" class="project-nav-link" id="project-discussions-link">Discussions</a></dd> -->
           {@ if (project.get("owners").toString().indexOf(my_key) != -1){ @}
           <dd><a href="#/p/{[ project.get('key') ]}/manage" class="project-nav-link" id="project-manage-link">Manage</a></dd>
           {@ } @}
@@ -130,6 +130,11 @@
           <div class="nine columns">
             <div id="project-content-view">
 
+            </div>
+            <div class="row">
+              <div class="twelve columns">
+                <p class="title">Todos <a href="" class="right" id="todo-add-item" title="Add Item">+</a></p>
+              </div>
             </div>
           </div>
           <div class="three columns" id="reminder-list">
@@ -160,14 +165,17 @@
   <script type="text/html" id="wall-item">
     <div class="row">
       <div class="one columns avatar">
-        <img src="http://www.gravatar.com/avatar/hash?s=50&r=pg" />
+        <img src="http://www.gravatar.com/avatar/{[ hex_md5(post.get('author')['emails'][0]) ]}?s=50&r=pg" />
       </div>
       <div class="eleven columns">
         <div class="wall-content">
-          <strong>{[ post.get("author") ]}</strong>: {[ post.get("content") ]}
+          <strong>{[ post.get("author")["name"] ]}</strong>: {[ post.get("content") ]}
         </div>
         <div class="wall-meta">
-          Posted on {[ utils.relative_time(post.get("pubdate")) ]}
+          {[ utils.relative_time(post.get("pubdate")) ]}
+          {@ if (post.get("author")["key"] == window.current_user_key){ @}
+          | <a href="" class="red delete-post" data-key="{[ post.get('key') ]}" title="Delete">&times;</a>
+          {@ } @}
         </div>
       </div>
     </div>
@@ -180,6 +188,7 @@
 
 
   <script src="/static/javascripts/jquery.js"></script>
+  <script src="/static/javascripts/md5-min.js"></script>
   <!--
   <script src="/static/javascripts/foundation.min.js"></script>
   -->

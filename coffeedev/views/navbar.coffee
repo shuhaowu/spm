@@ -46,6 +46,8 @@ class NavBarView extends Backbone.View
             that.userdata.set("loggedin", true)
             that.userdata.set("email", res["email"])
             that.userdata.set("key", res["key"])
+            window.current_user_email = res["email"]
+            window.current_user_key = res["key"]
             post_message("You have logged in as #{res['email']}.", "success")
           else
             that.on_error(res, status)
@@ -61,6 +63,8 @@ class NavBarView extends Backbone.View
             success: ((res, status, xhr) ->
               that.userdata.clear({silent: true})
               that.userdata.set("loggedin", false)
+              window.current_user_email = undefined
+              window.current_user_key = undefined
               post_message("You have been logged out.", "success")
             ),
             error: (res, status, xhr) -> that.on_error(res, status)

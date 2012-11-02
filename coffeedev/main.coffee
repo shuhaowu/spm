@@ -1,5 +1,6 @@
 views = require "views"
 models = require "models"
+statusmsg = require "statusmsg"
 
 _.templateSettings = {
   interpolate : /\{\[([\s\S]+?)\]\}/g,
@@ -27,6 +28,7 @@ $(document).ready(
     #$(document).foundationTopBar();
     #$(document).foundationAlerts();
 
+    statusmsg.setup()
     $.ajaxSetup({dataType: "json"})
 
     message_collection = new models["MessageList"]()
@@ -66,6 +68,10 @@ $(document).ready(
 
     app_router.on("route:show_project_wall", (key) ->
       main_view.show_project(key, "wall")
+    )
+
+    app_router.on("route:show_project_todo", (key) ->
+      main_view.show_project(key, "todo")
     )
 
     Backbone.history.start()

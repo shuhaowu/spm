@@ -29,37 +29,34 @@ def view_project(key):
   project["status"] = "ok"
   return jsonify(project)
 
-@blueprint.route("/wall/<key>")
-@login_required
-def get_wall_posts(key):
-  try:
-    posts = projects.get_all_posts_from_project(key)
-  except NotFoundError:
-    return abort(404)
-  return jsonify(status="ok", posts=posts)
 
-@blueprint.route("/wall/<key>/add", methods=["POST"])
+@blueprint.route("/wall/<key>", methods=["GET", "POST"])
+@blueprint.route("/wall/<key>/<post_key>", methods=["DELETE"])
 @login_required
-def add_wall_post(key):
-  try:
-    if session["key"] in projects.get_project_json(key)["owners"]:
-      post = projects.add_wall_post(key, request.form["content"], session["key"])
-      return jsonify(status="ok", post={"key": post.key, "content": post.title, "author": post.author.name, "pubdate": post.date.isoformat()})
+def wall_post(key, post_key=None):
+  if request.method == "GET":
+    try:
+      posts = projects.get_all_posts_from_project(key)
+    except NotFoundError:
+      return abort(404)
+    return jsonify(status="ok", posts=posts)
+  elif request.method == "POST":
+    try:
+      if session["key"] in projects.get_project_json(key)["owners"]:
+        post = projects.add_wall_post(key, request.json["content"], session["key"])
+        return jsonify(projects.wall_post_to_display_json(post))
+      else:
+        return abort(403)
+    except NotFoundError:
+      return abort(404)
+  elif request.method == "DELETE":
+    try:
+      post = projects.get_wall_post(post_key)
+    except NotFoundError:
+      return abort(404)
+
+    if post.getRawData("author") == session["key"]:
+      post.delete()
+      return jsonify(status="ok")
     else:
       return abort(403)
-  except NotFoundError:
-    return abort(404)
-
-@blueprint.route("/wall/<key>/del", methods=["DELETE"])
-@login_required
-def del_wall_post(key):
-  try:
-    post = projects.get_wall_post(key)
-  except NotFoundError:
-    return abort(404)
-
-  if post.getRawData("author") == session["key"]:
-    post.delete()
-    return jsonify(status="ok")
-  else:
-    return abort(403)

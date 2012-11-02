@@ -21,6 +21,9 @@ def home():
 
 @blueprint.route("/login/", methods=["POST"])
 def login():
+  if session.get("email", False):
+    return jsonify(status="okay")
+
   if "assertion" not in request.form:
     return abort(400)
 

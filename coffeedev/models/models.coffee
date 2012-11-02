@@ -36,6 +36,8 @@ class User extends Backbone.Model
 class Project extends Backbone.Model
 
 class WallPost extends Backbone.Model
+  urlRoot: () -> "/projects/wall/" + @project_key
+  idAttribute: "key"
 
 class Wall extends Backbone.Collection
   model: WallPost
@@ -51,11 +53,27 @@ class Wall extends Backbone.Collection
         url: "/projects/wall/#{that.key}"
         success: ((res, status, xhr) ->
           for post in res["posts"]
-            that.add(new WallPost(post))
+            wallpost = new WallPost(post)
+            wallpost.project_key = that.key
+            that.add(wallpost)
         )
         error: (xhr, status, error) ->
           post_message("Failed to update wall (#{xhr.status} {error})", "alert")
       )
+
+class TodoItem extends Backbone.Model
+  urlRoot: () -> "/projects/wall/" + @project_key
+  idAttribute: "key"
+
+class TodoList extends Backbone.Model
+  model: TodoItem
+
+  initialize: () ->
+    @project_key = undefined
+
+  fetch: () ->
+    if @project_key != undefined
+      that = this
 
 exports["UserData"] = UserData
 exports["Message"] = Message
@@ -64,3 +82,5 @@ exports["User"] = User
 exports["Project"] = Project
 exports["Wall"] = Wall
 exports["WallPost"] = WallPost
+exports["TodoList"] = TodoList
+exports["TodoItem"]

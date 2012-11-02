@@ -1,5 +1,6 @@
 from riakkit import Document, StringProperty, DictProperty, BaseProperty, \
-    MultiReferenceProperty, ReferenceProperty, DateTimeProperty, ListProperty
+    MultiReferenceProperty, ReferenceProperty, DateTimeProperty, ListProperty, \
+    BooleanProperty
 import riak
 
 import markdown
@@ -71,16 +72,6 @@ class User(CustomDocument):
   positions = DictProperty() # project key -> position name
 
 
-class TodoItem(CustomDocument):
-  bucket_name ="spm_todo_items"
-
-  name = StringProperty()
-  desc = StringProperty()
-  duedate = DateTimeProperty()
-
-  # 2i for assigned_to_bin
-  # 2i for category
-
 class Content(CustomDocument):
   bucket_name = ["spm_wallposts", "spm_comments"]
 
@@ -91,6 +82,20 @@ class Content(CustomDocument):
   date = DateTimeProperty()
 
   # project in 2i
+
+class TodoItem(CustomDocument):
+  bucket_name ="spm_todo_items"
+
+  name = StringProperty()
+  desc = StringProperty()
+  pubdate = DateTimeProperty()
+  duedate = DateTimeProperty()
+  done = BooleanProperty(default=False)
+  comments = MultiReferenceProperty(Content)
+
+  # 2i for assigned_to_bin
+  # 2i for category_bin
+  # 2i for project_bin
 
 class Project(CustomDocument):
   bucket_name = "spm_projects"
