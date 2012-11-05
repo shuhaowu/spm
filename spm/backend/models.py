@@ -86,10 +86,10 @@ class Content(CustomDocument):
 class TodoItem(CustomDocument):
   bucket_name ="spm_todo_items"
 
-  name = StringProperty()
-  desc = StringProperty()
+  title = StringProperty()
+  desc = MarkdownProperty()
   pubdate = DateTimeProperty()
-  duedate = DateTimeProperty()
+  duedate = DateTimeProperty(default=lambda: None)
   done = BooleanProperty(default=False)
   comments = MultiReferenceProperty(Content)
 

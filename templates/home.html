@@ -131,11 +131,6 @@
             <div id="project-content-view">
 
             </div>
-            <div class="row">
-              <div class="twelve columns">
-                <p class="title">Todos <a href="" class="right" id="todo-add-item" title="Add Item">+</a></p>
-              </div>
-            </div>
           </div>
           <div class="three columns" id="reminder-list">
             <div class="panel radius">
@@ -182,6 +177,94 @@
     <hr />
   </script>
 
+  <script type="text/html" id="todo-item-view">
+    <div class="todo-item">
+      <span class="custom checkbox{@ if (todo.get('done')){ @} checked{@ } @}"></span>
+      <span class="text{@ if (todo.get('done')){ @} done{@ } @}">{[ todo.get("title") ]}</span>
+
+      {@ if (can_edit){ @}
+      <div class="control"> <a href="" class="delete">Delete</a></div>
+      <div class="control"><a href="" class="edit">Edit</a> |</div>
+      {@ } @}
+    </div>
+
+    <div class="todo-item-details radius panel">
+      <a href="" class="close">&times;</a>
+      <div class="description">
+        {@ if (todo.has("desc")){ @}
+        {[ todo.get("desc")["html"] ]}
+        {@ } else { @}
+        No long descriptions available
+        {@ } @}
+      </div>
+      <br />
+      {@ if (todo.has("duedate")){ @}
+      <span class="radius alert label">due {[ todo.get("duedate") ]}</span>
+      {@ } @}
+      {@ if (todo.has("assignee")){ @}
+      <span class="radius label">Assigned to {[ todo.get("assignee")["name"] ]}</span>
+      {@ } @}
+      {@ _.each(todo.get("categories"), function(category, index, list){  @}
+      <span class="radius success label">{[ category ]}</span>
+      {@ }); @}
+    </div>
+
+    {@ if (can_edit){ @}
+    <div class="todo-item-details-edit radius panel">
+      <a href="" class="close">&times;</a>
+      <textarea placeholder="Long description" class="desc" rows="4">{@ if (todo.get("desc")){ @}{[ todo.get("desc")["markdown"] ]}{@ } @}</textarea>
+      <div class="row">
+        <div class="four columns">
+          Due date:
+          <input type="text" placeholder="Due date" class="duedate" />
+        </div>
+        <div class="four columns">
+          Assigned to:
+          <select class="assignee">
+            {@ _.each(possible_assignees, function(assignee, index, list){ @}
+            <option value="{[ assignee['key'] ]}">{[ assignee["name"] ]}</option>
+            {@ }); @}
+          </select>
+        </div>
+        <div class="four columns">
+          Category:
+          <select class="category">
+            {@ _.each(possible_categories, function(possible_categories, index, list){ @}
+            <option value="{[ possible_categories ]}">{[ possible_categories ]}</option>
+            {@ }); @}
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="twelve columns">
+          <a href="" class="small right radius button todo-item-details-update-button">Update</a>
+        </div>
+      </div>
+    </div>
+    {@ } @}
+
+    {@ if (!last){ @}
+    <div class="todo-sep"></div>
+    {@ } @}
+  </script>
+
+  <script type="text/html" id="todo-view">
+    <form class="custom">
+    <p class="title">Todos <a href="" class="right" id="todo-add-item" title="Add Item">+</a></p>
+    <div id="todo-items-container">
+      <div class="row" id="todo-new-container">
+        <div class="nine columns">
+          <input type="text" id="todo-new-item" placeholder="New Todo" />
+        </div>
+        <div class="three columns">
+          <a href="" id="todo-add-item-button" class="small radius button">Add</a>
+          <a href="" id="todo-add-item-cancel-button" class="small radius button">Cancel</a>
+        </div>
+      </div>
+    </div>
+    </form>
+  </script>
+
   <footer class="row">
     <a href="http://carletonrobotics.com">CU Robotics</a> | Ardroid Group 2012 | <a href="#/credits">Credits</a>
   </footer>
@@ -189,9 +272,6 @@
 
   <script src="/static/javascripts/jquery.js"></script>
   <script src="/static/javascripts/md5-min.js"></script>
-  <!--
-  <script src="/static/javascripts/foundation.min.js"></script>
-  -->
   <script src="/static/javascripts/underscore-min.js"></script>
   <script src="/static/javascripts/backbone-min.js"></script>
   <script src="/static/javascripts/app.js"></script>

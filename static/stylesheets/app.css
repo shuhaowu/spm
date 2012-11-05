@@ -2,7 +2,7 @@
 .right { float: right; }
 .left { float: left; }
 .textright { text-align: right; }
-p.title { font-weight: bold; font-size: 1.5em; }
+p.title { font-weight: bold; font-size: 1.5em; margin-bottom: 0.2em; }
 ul { margin-left: 2em; }
 .red { color: red; }
 
@@ -28,3 +28,16 @@ p.project-name { margin-bottom: 5px; font-weight: bold; font-size: 1.5em; color:
 div.avatar { padding-right: 0px; }
 div.avatar img { float: right; display: block; }
 .wall-poster-container { display: none;}
+
+.todo-item { margin: 0.6em auto; padding: 0.3em 0 1em 0; }
+.todo-item .done { text-decoration:line-through; }
+.todo-item .text { margin-left: 0.3em; }
+.todo-item .control { float: right; height: 1em; }
+.todo-item .delete { color: red; font-weight: bold; margin-left: 3px; }
+.todo-item.last { border-bottom: 0; }
+.todo-item span.checkbox:hover, .todo-item span.text:hover { cursor: pointer; }
+.todo-item-details, .todo-item-details-edit { position: relative; display: none; }
+.todo-item-details .description { border: 1px dashed #CCC; padding: 0.5em; }
+.todo-item-details a.close, .todo-item-details-edit a.close { display: block; position: absolute; top: 4px; right: 8px; z-index: 2; }
+.todo-sep { border-top: 1px solid #CCC; height: 1px; margin: 0; padding: 0; }
+#todo-new-container { display:none; }

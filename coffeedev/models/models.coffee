@@ -62,10 +62,13 @@ class Wall extends Backbone.Collection
       )
 
 class TodoItem extends Backbone.Model
-  urlRoot: () -> "/projects/wall/" + @project_key
+  urlRoot: () -> "/projects/todo/" + @project_key
   idAttribute: "key"
 
-class TodoList extends Backbone.Model
+  defaults:
+    "done": false
+
+class TodoList extends Backbone.Collection
   model: TodoItem
 
   initialize: () ->
@@ -83,4 +86,4 @@ exports["Project"] = Project
 exports["Wall"] = Wall
 exports["WallPost"] = WallPost
 exports["TodoList"] = TodoList
-exports["TodoItem"]
+exports["TodoItem"] = TodoItem

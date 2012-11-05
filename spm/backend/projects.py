@@ -47,8 +47,8 @@ def get_wall_post(key):
   return Content.get(key, bucket="spm_wallposts")
 
 
-def create_todo_item(name, desc, duedate, project, assigned_to="noone", category="default"):
-  ti = TodoItem(name=name, desc=desc, duedate=duedate)
+def create_todo_item(title, desc, duedate, project, assigned_to="noone", category="default"):
+  ti = TodoItem(title=title, desc=desc, duedate=duedate)
   ti.addIndex("assigned_to_bin", assigned_to)
   ti.addIndex("project_bin", project)
   ti.addIndex("category_bin", category)
@@ -59,7 +59,7 @@ def todo_to_json(todo):
   todo_json = todo.deserialize()
   todo_json["assigned_to"] = list(todo_json.index("assigned_to", []))
   todo_json["project"] = todo_json.index("project_bin").pop()
-  todo_json["category"] = todo_json.index("category_bin")
+  todo_json["categories"] = todo_json.index("category_bin")
 
 def get_todo_item_with_2i(field, value):
   items_queries = TodoItem.indexLookup(field, value)
