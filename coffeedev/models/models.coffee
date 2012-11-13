@@ -68,6 +68,10 @@ class TodoItem extends Backbone.Model
   defaults:
     "done": false
 
+  initialize: () ->
+    if not @get("categories")
+      @set("categories", [], {silent: true})
+
 class TodoList extends Backbone.Collection
   model: TodoItem
 
@@ -77,6 +81,18 @@ class TodoList extends Backbone.Collection
   fetch: () ->
     if @project_key != undefined
       that = this
+      $.ajax(
+        type: "GET"
+        url: "/projects/todo/" + that.project_key
+        success: (data, status, xhr) ->
+          that.reset()
+          for todo_json in data["items"]
+            todo = new TodoItem(todo_json)
+            todo.project_key = that.project_key
+            that.add(todo)
+        error: (xhr, status, error) ->
+          post_message("Error loading todo list (#{xhr.status} #{error})", "alert")
+      )
 
 exports["UserData"] = UserData
 exports["Message"] = Message

@@ -25,8 +25,6 @@ class AppRouter extends Backbone.Router
 
 $(document).ready(
   (e) ->
-    #$(document).foundationTopBar();
-    #$(document).foundationAlerts();
 
     statusmsg.setup()
     $.ajaxSetup({dataType: "json"})
