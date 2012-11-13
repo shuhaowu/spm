@@ -93,6 +93,30 @@ class TodoList extends Backbone.Collection
         error: (xhr, status, error) ->
           post_message("Error loading todo list (#{xhr.status} #{error})", "alert")
       )
+    else
+      console.log "Error fetching todo list due to lack of a project key."
+
+class Schedule extends Backbone.Model
+  urlRoot: () -> "/projects/schedule/" + @project_key
+  idAttribute: "key"
+
+class Schedules extends Backbone.Collection
+  model: Schedule
+
+  fetch: () ->
+    if @project_key != undefined
+      that = this
+      $.ajax(
+        type: "GET"
+        url: "/projects/schedule/" + that.project_key
+        success: (data, status, xhr) ->
+          that.reset()
+          for schedule_json in data["items"]
+            schedule = new Schedule(schedule_json)
+            schedule.project_key = that.project_key
+            that.add(schedule)
+      )
+
 
 exports["UserData"] = UserData
 exports["Message"] = Message
@@ -103,3 +127,5 @@ exports["Wall"] = Wall
 exports["WallPost"] = WallPost
 exports["TodoList"] = TodoList
 exports["TodoItem"] = TodoItem
+exports["Schedule"] = Schedule
+exports["Schedules"] = Schedules

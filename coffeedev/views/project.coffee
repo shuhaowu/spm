@@ -76,6 +76,9 @@ class WallView extends Backbone.View
     "click a#wall-post-button" : "on_post_button_clicked"
     "click a.delete-post" : "on_delete_post_clicked"
 
+class ScheduleView extends Backbone.View
+  initialize: () ->
+    _.bindAll(@)
 
 class ProjectView extends Backbone.View
   initialize: () ->
@@ -88,9 +91,8 @@ class ProjectView extends Backbone.View
     @views =
       wall: new WallView({userdata: @options.userdata, project_view: @})
       todo: new todo.TodoView({userdata: @options.userdata, project_view: @})
-      #schedule: "schedule view"
+      schedule: new ScheduleView({userdata: @options.userdata, project_view: @})
       #file: "file view"
-      #discussions: "discussions view"
       #manage: "manage view"
     @current_view = "wall"
 

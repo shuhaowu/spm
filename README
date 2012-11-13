@@ -1,0 +1,23 @@
+SPM (Simple Project Management)
+===============================
+
+To run the development setup. You need: 
+
+ - Riakkit with self-ref support: 
+   Clone git://github.com/shuhaowu/riakkit.git and merge the self-ref
+   branch into your master branch. Symlink that into this directory or
+   install it with self-ref support
+ - Coffeecrispt: git://github.com/shuhaowu/coffeecrispt.git
+   Link the crispt script into your PATH, this way you can just use the 
+   command.
+
+Compile the javascript:
+
+    crispt -i coffeedev/ -o static/javascripts/app.js
+
+Add `-w` if you're modifying to watch for changes and auto compile
+
+Run the server: `python run.py`
+
+Go to `http://localhost:4131` to see the result.
+

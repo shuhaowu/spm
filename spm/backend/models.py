@@ -97,6 +97,16 @@ class TodoItem(CustomDocument):
   # 2i for category_bin
   # 2i for project_bin
 
+class Schedule(CustomDocument):
+  bucket_name = "spm_schedule_items"
+
+  title = StringProperty()
+  desc = MarkdownProperty()
+  location = StringProperty()
+  time = DateTimeProperty()
+
+  # 2i for project_bin
+
 class Project(CustomDocument):
   bucket_name = "spm_projects"
 
