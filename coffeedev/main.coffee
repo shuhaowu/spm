@@ -13,7 +13,6 @@ class AppRouter extends Backbone.Router
 
     "profile/:key" : "show_profile"
     "profile"     : "show_my_profile"
-
     "p/:key" : "show_project"
     "p/:key/wall" : "show_project_wall"
     "p/:key/schedule" : "show_project_schedule"
@@ -70,6 +69,10 @@ $(document).ready(
 
     app_router.on("route:show_project_todo", (key) ->
       main_view.show_project(key, "todo")
+    )
+
+    app_router.on("route:show_project_schedule", (key) ->
+      main_view.show_project(key, "schedule")
     )
 
     Backbone.history.start()

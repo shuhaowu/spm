@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from spm.backend.models import Project, Content, TodoItem
+from spm.backend.models import Project, Content, TodoItem, Schedule
 from datetime import datetime
 
 def new_project(name, userkey):
@@ -110,10 +110,14 @@ def delete_todo_item(todo_key):
 
 def edit_todo_item(todo_key, json):
   todo = TodoItem.get(todo_key)
-  todo.title = json["title"]
-  todo.desc = json["desc"]
+  if json.get("title"):
+    todo.title = json["title"]
 
-  todo.duedate = datetime.strptime(json["duedate"], "%m/%d/%Y") if json["duedate"] else None
+  if json.get("desc"):
+    todo.desc = json["desc"]
+
+  if json.get("duedate"):
+    todo.duedate = datetime.strptime(json["duedate"], "%m/%d/%Y")
 
   if json["categories"]:
     todo.removeIndex("category_bin", silent=True)
@@ -126,3 +130,30 @@ def mark_todo_done(todo_key, done):
   todo = TodoItem.get(todo_key)
   todo.done = done
   todo.save()
+
+def schedule_to_json(schedule):
+  json = schedule.serialize()
+  json["key"] = schedule.key
+  json["project"] = list(schedule.indexes("project_bin"))[0]
+  return json
+
+def get_schedules(project_key):
+  schedules_queries = Schedule.indexLookup("project_bin", project_key)
+  schedules = []
+  for schedule in schedules_queries.run():
+    schedules.append(schedule_to_json(schedule))
+
+  schedules.sort(key=lambda x: x["starttime"])
+  return schedules
+
+def create_schedule_item(project_key, json):
+  json.pop("key", None)
+  json["starttime"] = datetime.strptime(json["starttime"], "%m/%d/%Y %H:%M")
+  json["endtime"] = datetime.strptime(json["endtime"], "%m/%d/%Y %H:%M")
+  schedule = Schedule(**json)
+  schedule.addIndex("project_bin", project_key)
+  schedule.save()
+  return schedule
+
+def delete_schedule(schedule_key):
+  Schedule.get(schedule_key).delete()

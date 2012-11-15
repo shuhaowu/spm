@@ -100,6 +100,25 @@ class Schedule extends Backbone.Model
   urlRoot: () -> "/projects/schedule/" + @project_key
   idAttribute: "key"
 
+  validate: (attrs) ->
+    errors = {}
+
+    if not attrs["starttime"]
+      errors["start-time"] = "A start time is required!"
+
+    if not attrs["endtime"]
+      errors["end-time"] = "An end time is required!"
+
+    if Date.parse(attrs["endtime"]) <= Date.parse(attrs["starttime"])
+      errors["end-time"] = "End time cannot be before the start time!"
+
+    if not attrs["title"]
+      errors["title"] = "A title is required!"
+    if not attrs["location"]
+      errors["location"] = "A location is required!"
+
+    if not $.isEmptyObject(errors) then errors else undefined
+
 class Schedules extends Backbone.Collection
   model: Schedule
 
@@ -112,6 +131,8 @@ class Schedules extends Backbone.Collection
         success: (data, status, xhr) ->
           that.reset()
           for schedule_json in data["items"]
+            schedule_json["starttime"] = (new Date(schedule_json["starttime"] * 1000)).toLocaleFormat("%m/%d/%Y %H:%M")
+            schedule_json["endtime"] = (new Date(schedule_json["endtime"] * 1000)).toLocaleFormat("%m/%d/%Y %H:%M")
             schedule = new Schedule(schedule_json)
             schedule.project_key = that.project_key
             that.add(schedule)

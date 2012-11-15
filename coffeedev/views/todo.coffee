@@ -94,10 +94,20 @@ class TodoItemView extends Backbone.View
     @todo.on("change:title", (model, title) ->
       $(".todo-item span.text", that.el).text(title)
     )
-    @todo.on("change:hide", (model, hide) ->
-      if hide and that.$el.css("display") != "none"
+
+    hide_todo_when_done = (todo, done) ->
+      if done
         that.$el.fadeOut()
-      else if not hide and that.$el.css("display") == "none"
+
+    @todo.on("hidedone", () ->
+      that.todo.on("change:done", hide_todo_when_done)
+      if that.todo.get("done") and that.$el.css("display") != "none"
+        that.$el.fadeOut()
+    )
+
+    @todo.on("showdone", () ->
+      that.todo.off("change:done", hide_todo_when_done)
+      if that.$el.css("display") == "none"
         that.$el.fadeIn()
     )
 
@@ -123,10 +133,6 @@ class TodoItemView extends Backbone.View
       @details_edit_view = new TodoItemDetailsEditView({todo: @todo, parent: this, el: $(".todo-item-details-edit", @el)})
 
     @details_edit_view.render()
-
-    #details_edit_div = document.getElementById("todo-item-details-edit")
-    #if details_edit_div != null
-    #  details_edit_div.innerHTML = @details_edit_view.render().innerHTML
 
     @el
 
@@ -163,6 +169,7 @@ class TodoItemView extends Backbone.View
 
   on_checkbox_clicked: (ev) ->
     checkbox = $(ev.target)
+    that = this
     $.ajax(
       type: "POST"
       url: "/projects/todo/#{@todo.project_key}/done/#{@todo.get('key')}"
@@ -170,9 +177,11 @@ class TodoItemView extends Backbone.View
       contentType: 'application/json'
       success: (data, status, xhr) ->
         if checkbox.hasClass("checked")
+          that.todo.set("done", false) # hack.. this should be done in a better way...
           checkbox.removeClass("checked")
           checkbox.next().removeClass("done")
         else
+          that.todo.set("done", true)
           checkbox.addClass("checked")
           checkbox.next().addClass("done")
       error: (xhr, status, error) ->
@@ -213,20 +222,20 @@ class TodoView extends Backbone.View
     @todo_item_template = _.template(document.getElementById("todo-item-view").innerHTML)
 
   add_todo: (todo) ->
-    if todo.get("duedate")
+    if todo.get("duedate") # hack.. because this will always be undefined when adding a todo from the view... so it must be from server otherwise
       todo.set("duedate", (new Date(todo.get("duedate") * 1000)).toLocaleFormat("%m/%d/%Y"))
     view = new TodoItemView({todo: todo, template: @todo_item_template, todos_list: @todos_list, parent: this})
     element = $(view.render()).css("display", "none").insertAfter($("#todo-new-container", @el))
     element.fadeIn()
 
   render: () ->
+    @todos_list.fetch() # has reset
     @delegateEvents()
     @el
 
   set_project: (project) ->
     @project = project
     @todos_list.project_key = project.get("key")
-    @todos_list.fetch() # has reset
 
   on_add_item_clicked: (ev) ->
     ev.preventDefault()
@@ -272,8 +281,7 @@ class TodoView extends Backbone.View
       target.text("Hide done")
 
     @todos_list.each((item) ->
-      if item.get("done")
-        item.set("hide", hide_done)
+      item.trigger(if hide_done then "hidedone" else "showdone")
     )
 
   events:

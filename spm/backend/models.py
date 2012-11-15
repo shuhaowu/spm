@@ -103,7 +103,8 @@ class Schedule(CustomDocument):
   title = StringProperty()
   desc = MarkdownProperty()
   location = StringProperty()
-  time = DateTimeProperty()
+  starttime = DateTimeProperty()
+  endtime = DateTimeProperty()
 
   # 2i for project_bin
 

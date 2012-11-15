@@ -273,6 +273,94 @@
     </form>
   </script>
 
+  <script type="text/html" id="schedule-view">
+    <p class="title">
+      Meeting Schedules
+      {@ if (can_manage){ @}
+      <a href="" class="right" id="add-meeting">+</a>
+      {@ } @}
+    </p>
+
+    <div id="meeting-add-box" class="panel radius">
+      <a href="" class="close">&times;</a>
+      <form>
+        <input type="text" placeholder="Title" id="meeting-new-title" />
+        <input type="text" placeholder="Location" id="meeting-new-location" />
+        <textarea placeholder="Long Description" id="meeting-new-desc" rows="4"></textarea>
+        <div class="row">
+          <div class="six columns">
+            <input type="text" class="datetimepicker" id="meeting-new-start-time" placeholder="Start Time" />
+          </div>
+          <div class="six columns">
+            <input type="text" class="datetimepicker" id="meeting-new-end-time" placeholder="End Time" />
+          </div>
+        </div>
+        <div class="right">
+          <a class="small radius alert button" id="meeting-new-cancel">Cancel</a>
+          <a class="small radius button" id="meeting-new-add">Add</a>
+        </div>
+        <br />
+      </form>
+    </div>
+
+    {@ if (nextmeeting){ @}
+    <div class="alert-box secondary" id="next-meeting">
+      Next meeting: {[ nextmeeting.get("starttime") ]} - {[ nextmeeting.get("endtime") ]} |
+      Location: {[ nextmeeting.get("location") ]} <a href="" class="right" class="meeting-item-desc-link" data-key="{[ nextmeeting.get('key') ]}">Details</a>
+    </div>
+    {@ } @}
+
+    <h5>Upcoming Meetings</h5>
+    <table class="twelve center">
+      <thead>
+        <th class="four">Title</th>
+        <th class="four">Time</th>
+        <th class="four">Location</th>
+      </thead>
+      <tbody id="meetings-upcoming">
+
+      </tbody>
+    </table>
+
+    <h5>Previous Meetings</h5>
+    <table class="twelve center">
+      <thead>
+        <th class="four">Title</th>
+        <th class="four">Time</th>
+        <th class="four">Location</th>
+      </thead>
+      <tbody id="meetings-previous">
+
+      </tbody>
+    </table>
+  </script>
+
+  <script type="text/html" id="schedule-details-view">
+    <p class="title inline">{[ title ]}</p>
+    <hr />
+    <p class="meeting-details-info-box">
+    Location: {[ location ]} <br /> Time: {[ starttime ]} - {[ endtime ]}
+    </p>
+    <p>&nbsp;</p>
+    {@ if (desc["html"]){ @}
+    {[ desc["html"] ]}
+    {@ } else {@}
+    <p>No descriptions available.</p>
+    {@ } @}
+  </script>
+
+  <script type="text/html" id="schedule-single-item-view">
+      <td>
+        <a href="" class="meeting-item-desc-link">{[ title ]}</a>
+        {@ if (can_manage){ @}
+        <a href="" class="right red meeting-item-delete">&times;</a>
+        {@ } @}
+      </td>
+      <td>{[ starttime ]} - {[ endtime ]}</td>
+      <td>{[ location ]}</td>
+
+  </script>
+
   <footer class="row">
     <a href="http://carletonrobotics.com">CU Robotics</a> | <a href="http://shuhaowu.com">Shuhao Wu</a> 2012 | <a href="#/credits">Credits</a>
   </footer>
@@ -280,9 +368,16 @@
   <script src="/static/javascripts/showdown.js"></script>
   <script src="/static/javascripts/jquery.js"></script>
   <script src="/static/javascripts/jquery-ui-1.9.1.custom.min.js"></script>
+  <script src="/static/javascripts/jquery-ui-timepicker.js"></script>
+  <script src="/static/javascripts/jquery.foundation.reveal.js"></script>
   <script src="/static/javascripts/md5-min.js"></script>
   <script src="/static/javascripts/underscore-min.js"></script>
   <script src="/static/javascripts/backbone-min.js"></script>
   <script src="/static/javascripts/app.js"></script>
+
+  <div id="shared-modal" class="reveal-modal">
+    <div id="shared-modal-content"></div>
+    <a class="close-reveal-modal">&#215;</a>
+  </div>
 </body>
 </html>

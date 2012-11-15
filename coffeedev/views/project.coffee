@@ -1,6 +1,7 @@
 exports = namespace "views.project"
 models = require "models"
 todo = require "views.todo"
+schedule = require "views.schedule"
 
 class WallView extends Backbone.View
   tagName: "div"
@@ -34,11 +35,10 @@ class WallView extends Backbone.View
     else
       $(".wall-poster-container", @el).css("display", "none")
 
-    @wall.reset()
-    @wall.fetch()
 
   render: () ->
-    @wall.fetch()
+    @wall.reset()
+    @wall.fetch() # don't need to delegate events in success because the events here are not modified when fetch is called (that's item view)
     @delegateEvents()
     @el
 
@@ -64,8 +64,8 @@ class WallView extends Backbone.View
       )
 
   on_delete_post_clicked: (ev) ->
+    ev.preventDefault()
     if (confirm("Are you sure you want to delete this post?"))
-      ev.preventDefault()
       key = $(ev.target).attr("data-key")
       statusmsg.display("Deleting...")
       @wall.get(key).destroy(
@@ -75,10 +75,6 @@ class WallView extends Backbone.View
   events:
     "click a#wall-post-button" : "on_post_button_clicked"
     "click a.delete-post" : "on_delete_post_clicked"
-
-class ScheduleView extends Backbone.View
-  initialize: () ->
-    _.bindAll(@)
 
 class ProjectView extends Backbone.View
   initialize: () ->
@@ -91,7 +87,7 @@ class ProjectView extends Backbone.View
     @views =
       wall: new WallView({userdata: @options.userdata, project_view: @})
       todo: new todo.TodoView({userdata: @options.userdata, project_view: @})
-      schedule: new ScheduleView({userdata: @options.userdata, project_view: @})
+      schedule: new schedule.ScheduleView({userdata: @options.userdata, project_view: @})
       #file: "file view"
       #manage: "manage view"
     @current_view = "wall"

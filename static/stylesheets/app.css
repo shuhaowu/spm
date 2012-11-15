@@ -5,6 +5,20 @@
 p.title { font-weight: bold; font-size: 1.5em; margin-bottom: 0.2em; }
 ul { margin-left: 2em; }
 .red { color: red; }
+table.center th, table.center td{ text-align: center; vertical-align: middle; }
+.inline { display: inline; }
+
+/* css for timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; }
+.ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
 
 .statusmsg { position: fixed; top: 2em; color: #000; border-radius: 5px; background-color: #D4FFA8; text-align: center; display: none; z-index: 1000; padding: 0.5em 0.8em; }
 
@@ -41,3 +55,11 @@ div.avatar img { float: right; display: block; }
 .todo-item-details a.close, .todo-item-details-edit a.close { display: block; position: absolute; top: 4px; right: 8px; z-index: 2; }
 .todo-sep { border-top: 1px solid #CCC; height: 1px; margin: 0; padding: 0; }
 #todo-new-container { display:none; }
+
+div#meeting-add-box { position: relative; display: none; }
+div#meeting-add-box a.close { display: block; position: absolute; top: 4px; right: 8px; z-index: 2; }
+.meeting-details-info-box { height: 1.5em; line-height: 1.5em; text-align: center; }
+
+#shared-modal hr { margin: 10px 0 9px 0; }
+
+td hr { margin: 5px auto; }
