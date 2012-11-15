@@ -1,6 +1,13 @@
 SPM (Simple Project Management)
 ===============================
 
+NOTE: THIS PROJECT DOES NOT HAVE CSRF PROTECTIONS!!!!!!!!
+REASON: SHMEH. TOO MUCH WORK AS WE ARE USING THIS JUST INTERNALLY.. MOSTLY
+        AND DON'T REALLY CARE IF YOU STEAL OUR MOSTLY OPEN DATA ANYWAY
+
+This project is also fairly hacked together.. so yeah..
+It looks pretty good, though :D
+
 To run the development setup. You need: 
 
  - Riakkit with self-ref support: 
