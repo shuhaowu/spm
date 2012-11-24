@@ -2,6 +2,7 @@
 from spm.backend.models import User, TodoItem, Project
 import requests
 import json
+from datetime import datetime
 
 def do_registration(email):
   u = User()
@@ -74,10 +75,13 @@ def get_personalized_data(key):
 
   todo_query = TodoItem.indexLookup("assigned_to_bin", key)
   todos = []
+  now = datetime.now()
   for todo in todo_query.run():
-    todos.append(todos.deserialize())
+    print todo.done
+    if not todo.done:
+      todos.append({"title" : todo.title, "desc" : todo.desc["html"], "time_remaining" : (todo.duedate - now).total_seconds()})
 
-  todos.sort(key=lambda x: x["duedate"])
+  todos.sort(key=lambda x: x["time_remaining"])
 
   user_json = {
     "projects" : get_user_projects_with_simple(user),

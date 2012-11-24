@@ -92,6 +92,7 @@ class TodoItem(CustomDocument):
   duedate = DateTimeProperty(default=lambda: None)
   done = BooleanProperty(default=False)
   comments = MultiReferenceProperty(Content)
+  author = StringProperty()
 
   # 2i for assigned_to_bin
   # 2i for category_bin

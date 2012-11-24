@@ -1,3 +1,4 @@
 *.pyc
 *.nja
 static/javascripts/app.js
+deploy

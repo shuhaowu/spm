@@ -73,7 +73,6 @@ class NavBarView extends Backbone.View
     })
 
   on_error: (res, status) ->
-    console.log res
     post_message("Authentication Error: #{res['status']} #{res['statusText']}", "alert")
 
   on_login_click: () ->

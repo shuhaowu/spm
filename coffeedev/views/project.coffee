@@ -2,6 +2,8 @@ exports = namespace "views.project"
 models = require "models"
 todo = require "views.todo"
 schedule = require "views.schedule"
+manage = require "views.manage"
+file = require "views.file"
 
 class WallView extends Backbone.View
   tagName: "div"
@@ -60,7 +62,9 @@ class WallView extends Backbone.View
           textarea.val("")
           statusmsg.close()
         )
-        error: ((xhr, status, error) -> post_message("Failed to post update (#{xhr.status} #{error})", "alert"))
+        error: ((xhr, status, error) ->
+          statusmsg.close()
+          post_message("Failed to post update (#{xhr.status} #{error})", "alert"))
       )
 
   on_delete_post_clicked: (ev) ->
@@ -88,8 +92,8 @@ class ProjectView extends Backbone.View
       wall: new WallView({userdata: @options.userdata, project_view: @})
       todo: new todo.TodoView({userdata: @options.userdata, project_view: @})
       schedule: new schedule.ScheduleView({userdata: @options.userdata, project_view: @})
-      #file: "file view"
-      #manage: "manage view"
+      manage: new manage.ManageView({userdata: @options.userdata, project_view: @})
+      file: new file.FileView({userdata: @options.userdata, project_view: @})
     @current_view = "wall"
 
     @project.on("change:key", (model, key) ->

@@ -105,6 +105,7 @@
   <div id="main">
     <div class="row">
       <h2 class="center">You need to sign in to continue!</h2>
+      <p class="center">Note: emails used here are all public info. Please be aware of that fact.</p>
     </div>
   </div>
 
@@ -117,7 +118,7 @@
           <dd><a href="#/p/{[ project.get('key') ]}/wall" class="project-nav-link" id="project-wall-link">Wall</a></dd>
           <dd><a href="#/p/{[ project.get('key') ]}/todo" class="project-nav-link" id="project-todo-link">Todo</a></dd>
           <dd><a href="#/p/{[ project.get('key') ]}/schedule" class="project-nav-link" id="project-schedule-link">Schedule</a></dd>
-          <dd><a href="#/p/{[ project.get('key') ]}/files" class="project-nav-link" id="project-files-link">Files</a></dd>
+          <dd><a href="#/p/{[ project.get('key') ]}/files" class="project-nav-link" id="project-file-link">Files</a></dd>
           <!-- <dd><a href="#/p/{[ project.get('key') ]}/discussions" class="project-nav-link" id="project-discussions-link">Discussions</a></dd> -->
           {@ if (project.get("owners").toString().indexOf(my_key) != -1){ @}
           <dd><a href="#/p/{[ project.get('key') ]}/manage" class="project-nav-link" id="project-manage-link">Manage</a></dd>
@@ -129,13 +130,15 @@
             <div id="project-content-view">
 
             </div>
+            <form>
           </div>
           <div class="three columns" id="reminder-list">
             <div class="panel radius">
               <h5>Your todos</h5>
               <ul>
                 {@ _.each(todos, function(todo, index, list){ @}
-                <li>{[ todo["name"] ]} - {[ todo["time_remaining"] ]}</li>
+                <li><span title="{[ todo['desc'] ]}">{[ todo["title"] ]}</span> - <strong>{[ utils.delta_time(-todo["time_remaining"]) ]}</strong> {@ if (todo["time_remaining"] <= 0){ @}<span class="radius alert label">Overdue</span>{@ } @}</li>
+                <br />
                 {@ }); @}
               </ul>
             </div>
@@ -189,8 +192,8 @@
     {@ if (todo.has("duedate") && todo.get("duedate").length > 0){ @}
     <span class="radius alert label duedate">due {[ todo.get("duedate") ]}</span>
     {@ } @}
-    {@ if (todo.has("assignee") && todo.get("assignee").length > 0){ @}
-    <span class="radius label assignee">Assigned to {[ todo.get("assignee")["name"] ]}</span>
+    {@ if (todo.has("assignee") && todo.get("assignee").length > 0 && todo.get("assignee") != "noone"){ @}
+    <span class="radius label assignee">Assigned to {[ get_user_name(todo.get("assignee")) ]}</span>
     {@ } @}
     {@ _.each(todo.get("categories"), function(category, index, list){  @}
     <span class="radius success label categories">{[ category ]}</span>
@@ -211,6 +214,7 @@
       <div class="four columns">
         Assigned to:
         <select class="assignee">
+          <option value="noone">No one</option>
           {@ _.each(possible_assignees, function(assignee, index, list){ @}
           <option value="{[ assignee['key'] ]}"{@ if (assignee["key"] == todo.get("assignee")){ @} selected="selected"{@ } @}>{[ assignee["name"] ]}</option>
           {@ }); @}
@@ -236,7 +240,9 @@
     <div class="todo-item">
       <span class="custom checkbox{@ if (todo.get('done')){ @} checked{@ } @}"></span>
       <span class="text{@ if (todo.get('done')){ @} done{@ } @}">{[ todo.get("title") ]}</span>
-
+      {@ if (todo.get("duedate") != null && Date.parse(todo.get("duedate")) - current_time <= 0 && !todo.get("done")){ @}
+      <span class="radius alert label">Overdue</span> <!-- todo: the "duedate" of todo is inconsistent -->
+      {@ } @}
       {@ if (can_edit){ @}
       <div class="control"> <a href="" class="delete">Delete</a></div>
       <div class="control"><a href="" class="edit">Edit</a> |</div>
@@ -350,15 +356,31 @@
   </script>
 
   <script type="text/html" id="schedule-single-item-view">
-      <td>
-        <a href="" class="meeting-item-desc-link">{[ title ]}</a>
-        {@ if (can_manage){ @}
-        <a href="" class="right red meeting-item-delete">&times;</a>
-        {@ } @}
-      </td>
-      <td>{[ starttime ]} - {[ endtime ]}</td>
-      <td>{[ location ]}</td>
+    <td>
+      <a href="" class="meeting-item-desc-link">{[ title ]}</a>
+      {@ if (can_manage){ @}
+      <a href="" class="right red meeting-item-delete">&times;</a>
+      {@ } @}
+    </td>
+    <td>{[ starttime ]} - {[ endtime ]}</td>
+    <td>{[ location ]}</td>
+  </script>
 
+  <script type="text/html" id="manage-view">
+    <h5>Project Memberships</h5>
+    <label>Owners (BE CAREFUL!)</label>
+    <textarea rows="5" placeholder="Owner emails... one per line" id="manage-update-owners-emails">{@ _.each(owners_email, function(email){ @}
+{[ email ]}
+{@ }); @}</textarea>
+    <p>&nbsp;<a href="" class="right small radius button" id="manage-update-owners-button">Update Owners</a></p>
+
+    <hr />
+    <label>Participants</label>
+    <textarea rows="5" placeholder="Participant emails... one per line" id="manage-update-participants-emails">{@ _.each(participants_email, function(email){ @}
+{[ email ]}
+{@ }); @}</textarea>
+    <p>&nbsp;<a href="" class="right small radius button" id="manage-update-participants-button">Update Participants</a></p>
+    </form>
   </script>
 
   <footer class="row">

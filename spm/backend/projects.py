@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from spm.backend.models import Project, Content, TodoItem, Schedule
+from spm.backend.models import Project, Content, TodoItem, Schedule, User
 from datetime import datetime
+
+from riakkit import NotFoundError
 
 def new_project(name, userkey):
   project = Project(name=name)
@@ -15,7 +17,7 @@ def get_project_json(key):
     "name": project.name,
     "desc": project.desc,
     "owners": list(project.index("owners_bin", [])),
-    "participants": list(project.index("partipants_bin", [])),
+    "participants": list(project.index("participants_bin", [])),
   }
   return project_json
 
@@ -47,12 +49,12 @@ def get_all_posts_from_project(key):
 def get_wall_post(key):
   return Content.get(key, bucket="spm_wallposts")
 
-def create_todo_item(project_key, json):
+def create_todo_item(project_key, json, author):
   duedate = json.get("duedate", None)
   if duedate:
     duedate = datetime.strptime(duedate, "%m/%d/%Y")
 
-  ti = TodoItem(title=json["title"], desc=json.get("desc", ""), duedate=duedate)
+  ti = TodoItem(title=json["title"], desc=json.get("desc", ""), duedate=duedate, author=author)
   ti.addIndex("project_bin", project_key)
 
   assignee = json.get("assignee")
@@ -71,7 +73,12 @@ def todo_to_json_simple(todo):
 def todo_to_json(todo):
   todo_json = todo.serialize()
 
-  todo_json["assignee"] = list(todo.index("assigned_to", []))
+  assignees = todo.index("assigned_to_bin", [])
+  if assignees:
+    todo_json["assignee"] = assignees.pop()
+  else:
+    todo_json["assignee"] = None
+
   todo_json["project"] = todo.index("project_bin").pop()
   todo_json["categories"] = list(todo.index("category_bin", []))
   todo_json["key"] = todo.key
@@ -86,14 +93,27 @@ def get_todo_json(todo_key):
 
 def get_todo_item_with_2i(field, value, simple=False):
   items_queries = TodoItem.indexLookup(field, value)
-  items = []
+  items = [] # could probably simplify with an integer counter on where each sections are and insert.
+  done_items = []
+  no_duedate = []
+  list_to_append_to = items
   for item in items_queries.run():
-    if simple:
-      items.append(todo_to_json_simple(item))
+    if item.done:
+      list_to_append_to = done_items
+    elif not item.duedate:
+      list_to_append_to = no_duedate
     else:
-      items.append(todo_to_json(item))
+      list_to_append_to = items
 
-  items.sort(key=lambda x: x["pubdate"])
+    if simple:
+      list_to_append_to.append(todo_to_json_simple(item))
+    else:
+      list_to_append_to.append(todo_to_json(item))
+
+  items.sort(key=lambda x: x["duedate"])
+  done_items.sort(key=lambda x:["duedate"])
+  items = items + no_duedate + done_items
+  items.reverse()
   return items
 
 def get_todo_item_project(project):
@@ -122,6 +142,10 @@ def edit_todo_item(todo_key, json):
   if json["categories"]:
     todo.removeIndex("category_bin", silent=True)
     todo.addIndex("category_bin", json["categories"][0])
+
+  if json["assignee"] and json["assignee"] != "noone":
+    todo.removeIndex("assigned_to_bin", silent=True)
+    todo.addIndex("assigned_to_bin", json["assignee"])
 
   todo.save()
   return todo
@@ -157,3 +181,61 @@ def create_schedule_item(project_key, json):
 
 def delete_schedule(schedule_key):
   Schedule.get(schedule_key).delete()
+
+
+def get_member_emails(project_key):
+  project = Project.get(project_key)
+  participants = project.indexes("participants_bin", [])
+  owners = project.indexes("owners_bin", [])
+  participants_email = []
+  owners_email = []
+  for owner_key in owners:
+    try:
+      owners_email.append(list(User.get(owner_key).index("email_bin", []))[0])
+    except NotFoundError:
+      raise Exception("User '%s' does not exist!" % owner_key)
+
+  for participants_key in participants:
+    try:
+      participants_email.append(list(User.get(participants_key).index("email_bin", []))[0])
+    except NotFoundError:
+      raise Exception("User '%s' does not exist!" % participants_key)
+
+  return {"participants_email" : participants_email, "owners_email" : owners_email}
+
+def set_owners(project_key, emails):
+  project = Project.get(project_key)
+  project.removeIndex("owners_bin")
+  for email in emails:
+    user_queries = User.indexLookup("email_bin", email)
+    if len(user_queries) == 0:
+      return False
+    project.addIndex("owners_bin", user_queries.all()[0].key)
+
+  project.save()
+  return True
+
+def set_participants(project_key, emails):
+  project = Project.get(project_key)
+  project.removeIndex("participants_bin", silent=True)
+  if len(emails) == 1 and emails[0] == "":
+    project.save()
+    return True
+
+  for email in emails:
+    user_queries = User.indexLookup("email_bin", email)
+    if len(user_queries) == 0:
+      return False
+    project.addIndex("participants_bin", user_queries.all()[0].key)
+
+  project.save()
+  return True
+
+def get_members_list(project_key):
+  project = Project.get(project_key)
+  members = list(project.index("owners_bin", [])) + list(project.index("participants_bin", []))
+  members_list = []
+  for member in members:
+    u = User.get(member)
+    members_list.append({"key" : u.key, "name" : u.name if u.name else list(u.index("email_bin"))[0]})
+  return members_list

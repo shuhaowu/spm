@@ -94,7 +94,7 @@ def new_todo_item(project_key):
   if not json or not json["title"]:
     return abort(400)
 
-  todo = projects.create_todo_item(project_key, request.json)
+  todo = projects.create_todo_item(project_key, request.json, session["key"])
   return jsonify({"key" : todo.key})
 
 check_todo_owner = lambda project_key, todo_key: session["key"] in projects.get_project_json(project_key)["owners"] or session["key"] == projects.get_todo_json(todo_key)["author"]
@@ -155,9 +155,57 @@ def new_schedule(project_key):
   return jsonify(key=schedule.key)
 
 @blueprint.route("/schedule/<project_key>/<schedule_key>", methods=["DELETE"])
+@owner_required
 def delete_schedule(project_key, schedule_key):
   try:
     projects.delete_schedule(schedule_key)
   except NotFoundError:
     return abort(404)
   return jsonify(status="ok")
+
+@blueprint.route("/members/<project_key>", methods=["GET"])
+@participant_required
+def get_members_list(project_key):
+  try:
+    members_list = projects.get_members_list(project_key)
+    return jsonify(items=members_list)
+  except NotFoundError:
+    return abort(404)
+  return abort(500)
+
+@blueprint.route("/manage/<project_key>/get_emails", methods=["GET"])
+@owner_required
+def get_member_emails(project_key):
+  try:
+    return jsonify(**projects.get_member_emails(project_key))
+  except NotFoundError:
+    return abort(404)
+  return abort(500)
+
+@blueprint.route("/manage/<project_key>/set_owners_emails", methods=["POST"])
+@owner_required
+def set_owners_emails(project_key):
+  if not request.json or not request.json.get("emails"):
+    return abort(400)
+
+  try:
+    if not projects.set_owners(project_key, request.json["emails"]):
+      return abort(400)
+    return jsonify(status="ok")
+  except NotFoundError:
+    return abort(404)
+  return abort(500)
+
+@blueprint.route("/manage/<project_key>/set_participants_emails", methods=["POST"])
+@owner_required
+def set_participants_emails(project_key):
+  if not request.json or not request.json.get("emails"):
+    return abort(400)
+
+  try:
+    if not projects.set_participants(project_key, request.json["emails"]):
+      return abort(400)
+    return jsonify(status="ok")
+  except NotFoundError:
+    return abort(404)
+  return abort(500)

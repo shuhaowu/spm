@@ -47,7 +47,7 @@ class MainView extends Backbone.View
   render: () -> @current_view.render()
 
   login_required: () ->
-    @el.innerHTML = "<h2 class=\"center\">You need to sign in to continue!</h2>"
+    @el.innerHTML = "<h2 class=\"center\">You need to sign in to continue!</h2><p class=\"center\">Note: emails used here are all public info. Please be aware of that fact.</p>"
 
   on_loading_error: (xhr, status, error) ->
     @http_error(xhr.status)

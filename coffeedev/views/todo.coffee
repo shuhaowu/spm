@@ -12,8 +12,14 @@ class TodoItemDetailsView extends Backbone.View
     @todo.on("update", @render)
 
   render: () ->
+    that = this
     @el.innerHTML = TodoItemDetailsView.template({
       todo: @todo
+      get_user_name: (key) ->
+        for u in that.options.parent.options.parent.possible_assignees
+          if u["key"] == key
+            return u["name"]
+        return "Error has occurred here..."
     })
     @delegateEvents()
     @el
@@ -37,7 +43,7 @@ class TodoItemDetailsEditView extends Backbone.View
   render: () ->
     @el.innerHTML = TodoItemDetailsEditView.template({
       todo: @todo,
-      possible_assignees: [],
+      possible_assignees: @options.parent.options.parent.possible_assignees, #wut
       possible_categories: ["uncategorized", "electrical", "mechanical", "software", "everyone"]
     })
     $(".duedate", @el).datepicker()
@@ -116,21 +122,30 @@ class TodoItemView extends Backbone.View
 
 
   render: (last=false) ->
-    @el.innerHTML = @template({
-      todo: @todo,
-      can_edit: true,
+    @el.innerHTML = @template(
+      todo: @todo
+      can_edit: true
       last: last
-    })
+      current_time: Date.parse(new Date())
+    )
 
     @delegateEvents()
 
     if @details_view == null
-      @details_view = new TodoItemDetailsView({todo: @todo, parent: this, el: $(".todo-item-details", @el)})
+      @details_view = new TodoItemDetailsView(
+        todo: @todo
+        parent: this
+        el: $(".todo-item-details", @el)
+      )
 
     @details_view.render()
 
     if @details_edit_view == null
-      @details_edit_view = new TodoItemDetailsEditView({todo: @todo, parent: this, el: $(".todo-item-details-edit", @el)})
+      @details_edit_view = new TodoItemDetailsEditView(
+        todo: @todo
+        parent: this
+        el: $(".todo-item-details-edit", @el)
+      )
 
     @details_edit_view.render()
 
@@ -193,7 +208,11 @@ class TodoItemView extends Backbone.View
     if (confirm("Are you sure you want to delete this item?"))
       statusmsg.display("Deleting...")
       @todo.destroy({
-        success: () -> statusmsg.close()
+        success: (() -> statusmsg.close())
+        error: ((model, xhr) ->
+          statusmsg.close()
+          post_message("Deleting failed... #{xhr.status}", "alert")
+        )
       })
 
   on_destroy: () ->
@@ -236,6 +255,16 @@ class TodoView extends Backbone.View
   set_project: (project) ->
     @project = project
     @todos_list.project_key = project.get("key")
+    that = this
+    $.ajax(
+      type: "GET"
+      url: "/projects/members/" + project.get("key")
+      success: ((data, status, xhr) ->
+        that.possible_assignees = data["items"]
+      ),
+      error: (xhr, status, error) ->
+        post_message("Something went wrong... try reloading the page (Loading assignee failed #{xhr.status})", "alert")
+    )
 
   on_add_item_clicked: (ev) ->
     ev.preventDefault()

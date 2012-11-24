@@ -80,12 +80,12 @@ class TodoList extends Backbone.Collection
 
   fetch: () ->
     if @project_key != undefined
+      @reset()
       that = this
       $.ajax(
         type: "GET"
         url: "/projects/todo/" + that.project_key
         success: (data, status, xhr) ->
-          that.reset()
           for todo_json in data["items"]
             todo = new TodoItem(todo_json)
             todo.project_key = that.project_key

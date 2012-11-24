@@ -62,7 +62,7 @@ class ScheduleView extends Backbone.View
     @schedules.project_key = project.get("key")
 
   on_add_schedule: (schedule, which) ->
-    schedule_item_view = new ScheduleItemView({schedule: schedule, can_manage: true})
+    schedule_item_view = new ScheduleItemView({schedule: schedule, can_manage: @options.userdata.get("key") in @project.get("owners")})
     schedule_item_view.render()
     node = schedule_item_view.$el
     node.css("display", "none")
@@ -73,9 +73,7 @@ class ScheduleView extends Backbone.View
   render: () ->
     @schedules.fetch()
     @el.innerHTML = @template(
-      can_manage: true
-      upcoming_meetings: []
-      previous_meetings: []
+      can_manage: @options.userdata.get("key") in @project.get("owners")
       nextmeeting: false
       render_item: @render_item
     )
