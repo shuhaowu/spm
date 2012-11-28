@@ -3,15 +3,28 @@ from spm.backend.models import User, TodoItem, Project
 import requests
 import json
 from datetime import datetime
+from settings import SERVER_URL
+
+def _add_to_projects(email, u, t):
+  projects_query = Project.indexLookup("unregistered_bin", email + " " + t)
+  for project in projects_query.run():
+    project.addIndex(t + "_bin", u.key)
+    project.removeIndex("unregistered_bin", email + " " + t)
+    project.save()
+
+def add_to_projects(email, u):
+  _add_to_projects(email, u, "owners")
+  _add_to_projects(email, u, "participants")
 
 def do_registration(email):
   u = User()
   u.addIndex("email_bin", email)
   u.save()
+  add_to_projects(email, u)
   return u.key
 
 def do_login(assertion):
-  data = {"assertion" : assertion, "audience" : "http://localhost:4131"}
+  data = {"assertion" : assertion, "audience" : SERVER_URL}
   resp = requests.post("https://verifier.login.persona.org/verify", data=data, verify=True)
 
   if resp.status_code == 200:
@@ -79,13 +92,20 @@ def get_personalized_data(key):
   for todo in todo_query.run():
     print todo.done
     if not todo.done:
-      todos.append({"title" : todo.title, "desc" : todo.desc["html"], "time_remaining" : (todo.duedate - now).total_seconds()})
+      t = {"title" : todo.title, "desc" : todo.desc["html"]}
+      if todo.duedate:
+        t["time_remaining"] = (todo.duedate - now).total_seconds()
+      else:
+        t["time_remaining"] = None
+
+      todos.append(t)
 
   todos.sort(key=lambda x: x["time_remaining"])
 
   user_json = {
     "projects" : get_user_projects_with_simple(user),
     "todos" : todos,
+    "name" : user.name
   }
 
   return user_json

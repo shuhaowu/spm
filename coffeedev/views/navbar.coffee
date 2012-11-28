@@ -21,7 +21,7 @@ class NavBarView extends Backbone.View
     )
 
     @userdata.on("change:projects", (model, projects) ->
-      if projects.length > 0
+      if projects and projects.length > 0
         $("li#project-dropdown-li").css("visibility", "visible")
         that.projects_dropdown.html(that.projects_dropdown_template({projects: projects}))
       else

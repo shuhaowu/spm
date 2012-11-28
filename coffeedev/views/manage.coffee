@@ -4,6 +4,7 @@ models = require "models"
 class ManageView extends Backbone.View
   initialize: () ->
     @template = _.template(document.getElementById("manage-view").innerHTML)
+    @name = "manage"
 
   render: () ->
     that = this

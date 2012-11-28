@@ -92,7 +92,7 @@ class TodoItem(CustomDocument):
   duedate = DateTimeProperty(default=lambda: None)
   done = BooleanProperty(default=False)
   comments = MultiReferenceProperty(Content)
-  author = StringProperty()
+  author = ReferenceProperty(User)
 
   # 2i for assigned_to_bin
   # 2i for category_bin
@@ -115,8 +115,9 @@ class Project(CustomDocument):
   name = StringProperty()
   desc = StringProperty()
 
-  # 2i for "owner_bin" -> userkey
-  # 2i for "participant_bin" -> userkey
+  # 2i for "owners_bin" -> userkey
+  # 2i for "participants_bin" -> userkey
+  # 2i for "unregistered_bin" -> "<email> <type:owners/participants>"
 
 class Files(CustomDocument):
   bucket_name = "spm_attachment"

@@ -73,7 +73,11 @@ class WallView extends Backbone.View
       key = $(ev.target).attr("data-key")
       statusmsg.display("Deleting...")
       @wall.get(key).destroy(
-        success: () -> statusmsg.close()
+        success: () ->
+          statusmsg.close()
+        error: () ->
+          post_message("Failed to delete wall post!", "alert")
+          statusmsg.close()
       )
 
   events:

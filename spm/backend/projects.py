@@ -31,11 +31,20 @@ def add_wall_post(key, content, user):
   post.save(bucket="spm_wallposts")
   return post
 
+
+def get_author_json(author):
+  a = {"key" : author.key, "emails" : list(author.index("email_bin"))}
+  if not author.name:
+    a["name"] = a["emails"]
+  else:
+    a["name"] = author.name
+  return a
+
 def wall_post_to_display_json(post):
   return {
     "key": post.key,
     "content": post.title,
-    "author": {"key" : post.author.key, "name": post.author.name, "emails": list(post.author.index("email_bin"))},
+    "author": get_author_json(post.author),
     "pubdate": post.date.isoformat()
   }
 
@@ -82,6 +91,7 @@ def todo_to_json(todo):
   todo_json["project"] = todo.index("project_bin").pop()
   todo_json["categories"] = list(todo.index("category_bin", []))
   todo_json["key"] = todo.key
+  todo_json["author"] = get_author_json(todo.author)
 
   if "desc" in todo_json and todo_json["desc"]:
     todo_json["desc"] = dict(todo_json["desc"])
@@ -187,8 +197,10 @@ def get_member_emails(project_key):
   project = Project.get(project_key)
   participants = project.indexes("participants_bin", [])
   owners = project.indexes("owners_bin", [])
+  unregistered = project.indexes("unregistered_bin", [])
   participants_email = []
   owners_email = []
+  unregistered_emails = []
   for owner_key in owners:
     try:
       owners_email.append(list(User.get(owner_key).index("email_bin", []))[0])
@@ -201,7 +213,16 @@ def get_member_emails(project_key):
     except NotFoundError:
       raise Exception("User '%s' does not exist!" % participants_key)
 
-  return {"participants_email" : participants_email, "owners_email" : owners_email}
+  for u in unregistered:
+    temp = u.split(" ")
+    unregistered_emails.append([temp[0], temp[1][:-1]])
+
+  return {"participants_email" : participants_email, "owners_email" : owners_email, "unregistered_emails" : unregistered_emails}
+
+
+def add_unregistered_to_project(project, email, t):
+  project.addIndex("unregistered_bin", email + " " + t)
+  project.save()
 
 def set_owners(project_key, emails):
   project = Project.get(project_key)
@@ -209,8 +230,9 @@ def set_owners(project_key, emails):
   for email in emails:
     user_queries = User.indexLookup("email_bin", email)
     if len(user_queries) == 0:
-      return False
-    project.addIndex("owners_bin", user_queries.all()[0].key)
+      add_unregistered_to_project(project, email, "owners")
+    else:
+      project.addIndex("owners_bin", user_queries.all()[0].key)
 
   project.save()
   return True
@@ -225,8 +247,9 @@ def set_participants(project_key, emails):
   for email in emails:
     user_queries = User.indexLookup("email_bin", email)
     if len(user_queries) == 0:
-      return False
-    project.addIndex("participants_bin", user_queries.all()[0].key)
+      add_unregistered_to_project(project, email, "participants")
+    else:
+      project.addIndex("participants_bin", user_queries.all()[0].key)
 
   project.save()
   return True

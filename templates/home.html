@@ -137,7 +137,7 @@
               <h5>Your todos</h5>
               <ul>
                 {@ _.each(todos, function(todo, index, list){ @}
-                <li><span title="{[ todo['desc'] ]}">{[ todo["title"] ]}</span> - <strong>{[ utils.delta_time(-todo["time_remaining"]) ]}</strong> {@ if (todo["time_remaining"] <= 0){ @}<span class="radius alert label">Overdue</span>{@ } @}</li>
+                <li><span title="{[ todo['desc'] ]}">{[ todo["title"] ]}</span> {@ if (todo["time_remaining"] !== null){ @}- <strong>{[ utils.delta_time(-todo["time_remaining"]) ]}</strong> {@ if (todo["time_remaining"] <= 0){ @}<span class="radius alert label">Overdue</span>{@ }}; @}</li>
                 <br />
                 {@ }); @}
               </ul>
@@ -189,6 +189,7 @@
     </div>
     <br />
     <div class="right">
+    <span class="radius alert secondary label">Created by {[ todo.get("author")["name"] ]}</span>
     {@ if (todo.has("duedate") && todo.get("duedate").length > 0){ @}
     <span class="radius alert label duedate">due {[ todo.get("duedate") ]}</span>
     {@ } @}
@@ -380,7 +381,13 @@
 {[ email ]}
 {@ }); @}</textarea>
     <p>&nbsp;<a href="" class="right small radius button" id="manage-update-participants-button">Update Participants</a></p>
-    </form>
+    <hr />
+    <h5>Unregistered users</h5>
+    <ul>
+      {@ _.each(unregistered_emails, function(email){ @}
+      <li>{[ email[0] ]} - {[ email[1] ]}</li>
+      {@ }); @}
+    </ul>
   </script>
 
   <footer class="row">

@@ -18,7 +18,10 @@ def participant_required(f):
   @wraps(f)
   def df(project_key, *args, **kwargs):
     userkey = session.get("key", False)
-    project_json = projects.get_project_json(project_key)
+    try:
+      project_json = projects.get_project_json(project_key)
+    except NotFoundError:
+      return abort(404)
     if userkey in project_json["owners"] or userkey in project_json["participants"]:
       return f(project_key=project_key, *args, **kwargs)
     return abort(403)

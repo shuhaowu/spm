@@ -283,6 +283,7 @@ class TodoView extends Backbone.View
       todo = new models.TodoItem()
       todo.project_key = @project.get("key")
       todo.set("title", title)
+      todo.set("author", {"name" : @options.userdata.get("name") || @options.userdata.get("emails")[0]})
       that = this
       todo.save({},
         success: () ->
